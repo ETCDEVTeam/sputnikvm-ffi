@@ -33,3 +33,20 @@ typedef struct {
   sputnikvm_u256 difficulty;
   sputnikvm_gas gas_limit;
 } sputnikvm_header_params;
+
+typedef struct sputnikvm_vm_S sputnikvm_vm_t;
+
+extern sputnikvm_vm_t *
+sputnikvm_new_frontier(sputnikvm_transaction transaction, sputnikvm_header_params header);
+
+extern sputnikvm_vm_t *
+sputnikvm_new_homestead(sputnikvm_transaction transaction, sputnikvm_header_params header);
+
+extern sputnikvm_vm_t *
+sputnikvm_new_eip150(sputnikvm_transaction transaction, sputnikvm_header_params header);
+
+extern sputnikvm_vm_t *
+sputnikvm_new_eip160(sputnikvm_transaction transaction, sputnikvm_header_params header);
+
+extern void
+sputnikvm_free(sputnikvm_vm_t *vm);
