@@ -1,6 +1,6 @@
 extern crate libc;
 
-use libc::{c_uchar, c_uint};
+use libc::{c_uchar, c_uint, c_longlong};
 
 pub struct c_address {
     pub data: [c_uchar; 20],
@@ -27,4 +27,13 @@ pub struct c_transaction {
     pub input: *const c_uchar,
     pub input_len: c_uint,
     pub nonce: c_u256,
+}
+
+#[repr(C)]
+pub struct c_header_params {
+    pub beneficiary: c_address,
+    pub timestamp: c_longlong,
+    pub number: c_u256,
+    pub difficulty: c_u256,
+    pub gas_limit: c_gas,
 }

@@ -25,3 +25,11 @@ typedef struct {
   unsigned int input_len;
   sputnikvm_u256 nonce;
 } sputnikvm_transaction;
+
+typedef struct {
+  sputnikvm_address beneficiary;
+  unsigned long long int timestamp;
+  sputnikvm_u256 number;
+  sputnikvm_u256 difficulty;
+  sputnikvm_gas gas_limit;
+} sputnikvm_header_params;
