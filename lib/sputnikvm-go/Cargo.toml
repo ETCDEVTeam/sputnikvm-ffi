@@ -1,0 +1,11 @@
+[package]
+name = "sputnikvm-go"
+version = "0.0.0"
+authors = ["Wei Tang <hi@that.world>"]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+libc = "0.2"
+sputnikvm = { version = "0.8", default-features = false, features = ["std", "rust-secp256k1"] }
