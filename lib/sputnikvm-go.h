@@ -50,3 +50,9 @@ sputnikvm_new_eip160(sputnikvm_transaction transaction, sputnikvm_header_params 
 
 extern void
 sputnikvm_free(sputnikvm_vm_t *vm);
+
+extern sputnikvm_transaction
+sputnikvm_default_transaction(void);
+
+extern sputnikvm_header_params
+sputnikvm_default_header_params(void);
