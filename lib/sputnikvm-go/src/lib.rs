@@ -7,6 +7,7 @@ mod common;
 pub use common::{c_address, c_gas, c_u256};
 
 use std::slice;
+use std::ptr;
 use std::rc::Rc;
 use libc::{c_uchar, c_uint, c_longlong};
 use sputnikvm::{TransactionAction, ValidTransaction, HeaderParams, SeqTransactionVM, Patch,
@@ -14,8 +15,10 @@ use sputnikvm::{TransactionAction, ValidTransaction, HeaderParams, SeqTransactio
                 VM};
 
 type c_action = c_uchar;
-pub const CALL_ACTION: c_action = 0;
-pub const CREATE_ACTION: c_action = 1;
+#[no_mangle]
+pub static CALL_ACTION: c_action = 0;
+#[no_mangle]
+pub static CREATE_ACTION: c_action = 1;
 
 #[repr(C)]
 pub struct c_transaction {
@@ -117,4 +120,19 @@ pub extern fn sputnikvm_free(
 ) {
     if vm.is_null() { return; }
     unsafe { Box::from_raw(vm); }
+}
+
+#[no_mangle]
+pub extern fn sputnikvm_default_transaction() -> c_transaction {
+    c_transaction {
+        caller: c_address::default(),
+        gas_price: c_gas::default(),
+        gas_limit: c_gas::default(),
+        action: CALL_ACTION,
+        action_address: c_address::default(),
+        value: c_u256::default(),
+        input: ptr::null(),
+        input_len: 0,
+        nonce: c_u256::default(),
+    }
 }
