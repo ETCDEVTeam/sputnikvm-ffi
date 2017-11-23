@@ -55,14 +55,18 @@ fn sputnikvm_new<P: Patch + 'static>(
         },
         value: transaction.value.into(),
         input: {
-            let s = unsafe {
-                slice::from_raw_parts(transaction.input, transaction.input_len as usize)
-            };
-            let mut r = Vec::new();
-            for v in s {
-                r.push(*v);
+            if transaction.input.is_null() {
+                Rc::new(Vec::new())
+            } else {
+                let s = unsafe {
+                    slice::from_raw_parts(transaction.input, transaction.input_len as usize)
+                };
+                let mut r = Vec::new();
+                for v in s {
+                    r.push(*v);
+                }
+                Rc::new(r)
             }
-            Rc::new(r)
         },
         nonce: transaction.nonce.into(),
     };
