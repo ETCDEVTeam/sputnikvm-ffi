@@ -87,35 +87,35 @@ fn sputnikvm_new<P: Patch + 'static>(
 }
 
 #[no_mangle]
-pub extern fn sputnikvm_new_frontier(
+pub extern "C" fn sputnikvm_new_frontier(
     transaction: c_transaction, header: c_header_params
 ) -> *mut Box<VM> {
     sputnikvm_new::<MainnetFrontierPatch>(transaction, header)
 }
 
 #[no_mangle]
-pub extern fn sputnikvm_new_homestead(
+pub extern "C" fn sputnikvm_new_homestead(
     transaction: c_transaction, header: c_header_params
 ) -> *mut Box<VM> {
     sputnikvm_new::<MainnetHomesteadPatch>(transaction, header)
 }
 
 #[no_mangle]
-pub extern fn sputnikvm_new_eip150(
+pub extern "C" fn sputnikvm_new_eip150(
     transaction: c_transaction, header: c_header_params
 ) -> *mut Box<VM> {
     sputnikvm_new::<MainnetEIP150Patch>(transaction, header)
 }
 
 #[no_mangle]
-pub extern fn sputnikvm_new_eip160(
+pub extern "C" fn sputnikvm_new_eip160(
     transaction: c_transaction, header: c_header_params
 ) -> *mut Box<VM> {
     sputnikvm_new::<MainnetEIP160Patch>(transaction, header)
 }
 
 #[no_mangle]
-pub extern fn sputnikvm_free(
+pub extern "C" fn sputnikvm_free(
     vm: *mut Box<VM>
 ) {
     if vm.is_null() { return; }
@@ -123,7 +123,7 @@ pub extern fn sputnikvm_free(
 }
 
 #[no_mangle]
-pub extern fn sputnikvm_default_transaction() -> c_transaction {
+pub extern "C" fn sputnikvm_default_transaction() -> c_transaction {
     c_transaction {
         caller: c_address::default(),
         gas_price: c_gas::default(),
@@ -134,5 +134,16 @@ pub extern fn sputnikvm_default_transaction() -> c_transaction {
         input: ptr::null(),
         input_len: 0,
         nonce: c_u256::default(),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_default_header_params() -> c_header_params {
+    c_header_params {
+        beneficiary: c_address::default(),
+        timestamp: 0,
+        number: c_u256::default(),
+        difficulty: c_u256::default(),
+        gas_limit: c_gas::default(),
     }
 }
