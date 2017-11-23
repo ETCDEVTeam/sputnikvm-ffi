@@ -9,7 +9,9 @@ pub use common::{c_address, c_gas, c_u256};
 use std::slice;
 use std::rc::Rc;
 use libc::{c_uchar, c_uint, c_longlong};
-use sputnikvm::{TransactionAction, ValidTransaction, HeaderParams, SeqTransactionVM, Patch};
+use sputnikvm::{TransactionAction, ValidTransaction, HeaderParams, SeqTransactionVM, Patch,
+                MainnetFrontierPatch, MainnetHomesteadPatch, MainnetEIP150Patch, MainnetEIP160Patch,
+                VM};
 
 type c_action = c_uchar;
 pub const CALL_ACTION: c_action = 0;
@@ -37,10 +39,9 @@ pub struct c_header_params {
     pub gas_limit: c_gas,
 }
 
-#[no_mangle]
-fn sputnikvm_new<P: Patch>(
+fn sputnikvm_new<P: Patch + 'static>(
     transaction: c_transaction, header: c_header_params
-) -> *mut SeqTransactionVM<P> {
+) -> *mut Box<VM> {
     let transaction = ValidTransaction {
         caller: Some(transaction.caller.into()),
         gas_price: transaction.gas_price.into(),
@@ -66,5 +67,50 @@ fn sputnikvm_new<P: Patch>(
         nonce: transaction.nonce.into(),
     };
 
-    unimplemented!()
+    let header = HeaderParams {
+        beneficiary: header.beneficiary.into(),
+        timestamp: header.timestamp as u64,
+        number: header.number.into(),
+        difficulty: header.difficulty.into(),
+        gas_limit: header.gas_limit.into(),
+    };
+
+    let vm = SeqTransactionVM::<P>::new(transaction, header);
+    Box::into_raw(Box::new(Box::new(vm)))
+}
+
+#[no_mangle]
+pub extern fn sputnikvm_new_frontier(
+    transaction: c_transaction, header: c_header_params
+) -> *mut Box<VM> {
+    sputnikvm_new::<MainnetFrontierPatch>(transaction, header)
+}
+
+#[no_mangle]
+pub extern fn sputnikvm_new_homestead(
+    transaction: c_transaction, header: c_header_params
+) -> *mut Box<VM> {
+    sputnikvm_new::<MainnetHomesteadPatch>(transaction, header)
+}
+
+#[no_mangle]
+pub extern fn sputnikvm_new_eip150(
+    transaction: c_transaction, header: c_header_params
+) -> *mut Box<VM> {
+    sputnikvm_new::<MainnetEIP150Patch>(transaction, header)
+}
+
+#[no_mangle]
+pub extern fn sputnikvm_new_eip160(
+    transaction: c_transaction, header: c_header_params
+) -> *mut Box<VM> {
+    sputnikvm_new::<MainnetEIP160Patch>(transaction, header)
+}
+
+#[no_mangle]
+pub extern fn sputnikvm_free(
+    vm: *mut Box<VM>
+) {
+    if vm.is_null() { return; }
+    unsafe { Box::from_raw(vm); }
 }
