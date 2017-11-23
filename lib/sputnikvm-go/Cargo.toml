@@ -9,4 +9,4 @@ crate-type = ["cdylib"]
 [dependencies]
 libc = "0.2"
 etcommon-bigint = { version = "0.2", default-features = false, features = ["rlp"] }
-sputnikvm = { version = "0.8", default-features = false, features = ["std", "rust-secp256k1"] }
+sputnikvm = { version = "0.9", default-features = false, features = ["std", "rust-secp256k1"] }
