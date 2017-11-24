@@ -34,6 +34,26 @@ typedef struct {
   sputnikvm_gas gas_limit;
 } sputnikvm_header_params;
 
+typedef enum {
+  none, account, account_code, account_storage, blockhash
+} sputnikvm_require_type;
+
+typedef struct {
+  sputnikvm_address address;
+  sputnikvm_u256 key;
+} sputnikvm_require_value_account_storage;
+
+typedef union {
+  sputnikvm_address account;
+  sputnikvm_require_value_account_storage account_storage;
+  sputnikvm_u256 blockhash;
+} sputnikvm_require_value;
+
+typedef struct {
+  sputnikvm_require_type type;
+  sputnikvm_require_value value;
+} sputnikvm_require;
+
 typedef struct sputnikvm_vm_S sputnikvm_vm_t;
 
 extern sputnikvm_vm_t *
@@ -47,6 +67,9 @@ sputnikvm_new_eip150(sputnikvm_transaction transaction, sputnikvm_header_params 
 
 extern sputnikvm_vm_t *
 sputnikvm_new_eip160(sputnikvm_transaction transaction, sputnikvm_header_params header);
+
+extern sputnikvm_require
+sputnikvm_fire(sputnikvm_vm_t *vm);
 
 extern void
 sputnikvm_free(sputnikvm_vm_t *vm);
