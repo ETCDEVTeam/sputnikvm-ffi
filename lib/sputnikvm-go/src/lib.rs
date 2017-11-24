@@ -13,7 +13,7 @@ use std::ops::DerefMut;
 use libc::{c_uchar, c_uint, c_longlong};
 use sputnikvm::{TransactionAction, ValidTransaction, HeaderParams, SeqTransactionVM, Patch,
                 MainnetFrontierPatch, MainnetHomesteadPatch, MainnetEIP150Patch, MainnetEIP160Patch,
-                VM, RequireError};
+                VM, RequireError, AccountCommitment};
 
 type c_action = c_uchar;
 #[no_mangle]
@@ -208,6 +208,28 @@ pub extern "C" fn sputnikvm_fire(
     }
     Box::into_raw(vm_box);
     ret
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_commit_account(
+    vm: *mut Box<VM>, address: c_address, nonce: c_u256, balance: c_u256,
+    code: *mut u8, code_len: c_uint
+) {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        let commitment = AccountCommitment::Full {
+            nonce: nonce.into(),
+            address: address.into(),
+            balance: balance.into(),
+            code: {
+                let code = unsafe { slice::from_raw_parts(code, code_len as usize) };
+                Rc::new(code.into())
+            },
+        };
+        vm.commit_account(commitment);
+    }
+    Box::into_raw(vm_box);
 }
 
 #[no_mangle]
