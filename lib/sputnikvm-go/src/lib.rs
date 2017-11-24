@@ -9,10 +9,11 @@ pub use common::{c_address, c_gas, c_u256};
 use std::slice;
 use std::ptr;
 use std::rc::Rc;
+use std::ops::DerefMut;
 use libc::{c_uchar, c_uint, c_longlong};
 use sputnikvm::{TransactionAction, ValidTransaction, HeaderParams, SeqTransactionVM, Patch,
                 MainnetFrontierPatch, MainnetHomesteadPatch, MainnetEIP150Patch, MainnetEIP160Patch,
-                VM};
+                VM, RequireError};
 
 type c_action = c_uchar;
 #[no_mangle]
@@ -40,6 +41,35 @@ pub struct c_header_params {
     pub number: c_u256,
     pub difficulty: c_u256,
     pub gas_limit: c_gas,
+}
+
+#[repr(C)]
+pub struct c_require {
+    pub typ: c_require_type,
+    pub value: c_require_value,
+}
+
+#[repr(C)]
+pub enum c_require_type {
+    none,
+    account,
+    account_code,
+    account_storage,
+    blockhash
+}
+
+#[repr(C)]
+pub union c_require_value {
+    pub account: c_address,
+    pub account_storage: c_require_value_account_storage,
+    pub blockhash: c_u256,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct c_require_value_account_storage {
+    pub address: c_address,
+    pub key: c_u256,
 }
 
 fn sputnikvm_new<P: Patch + 'static>(
@@ -120,6 +150,64 @@ pub extern "C" fn sputnikvm_free(
 ) {
     if vm.is_null() { return; }
     unsafe { Box::from_raw(vm); }
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_fire(
+    vm: *mut Box<VM>
+) -> c_require {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    let ret;
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        match vm.fire() {
+            Ok(()) => {
+                ret = c_require {
+                    typ: c_require_type::none,
+                    value: c_require_value {
+                        account: c_address::default(),
+                    }
+                };
+            },
+            Err(RequireError::Account(address)) => {
+                ret = c_require {
+                    typ: c_require_type::account,
+                    value: c_require_value {
+                        account: address.into(),
+                    }
+                };
+            },
+            Err(RequireError::AccountCode(address)) => {
+                ret = c_require {
+                    typ: c_require_type::account_code,
+                    value: c_require_value {
+                        account: address.into(),
+                    }
+                };
+            },
+            Err(RequireError::AccountStorage(address, key)) => {
+                ret = c_require {
+                    typ: c_require_type::account_storage,
+                    value: c_require_value {
+                        account_storage: c_require_value_account_storage {
+                            address: address.into(),
+                            key: key.into(),
+                        },
+                    }
+                };
+            },
+            Err(RequireError::Blockhash(number)) => {
+                ret = c_require {
+                    typ: c_require_type::blockhash,
+                    value: c_require_value {
+                        blockhash: number.into(),
+                    },
+                };
+            },
+        }
+    }
+    Box::into_raw(vm_box);
+    ret
 }
 
 #[no_mangle]

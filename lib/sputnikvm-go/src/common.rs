@@ -5,6 +5,7 @@ use bigint::{U256, Gas, Address};
 // however, in etcommon-bigint, it is little-endian representation.
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct c_address {
     pub data: [c_uchar; 20],
 }
@@ -39,6 +40,7 @@ impl From<Address> for c_address {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct c_gas {
     pub data: [c_uchar; 32],
 }
@@ -68,6 +70,7 @@ impl From<Gas> for c_gas {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct c_u256 {
     pub data: [c_uchar; 32],
 }
