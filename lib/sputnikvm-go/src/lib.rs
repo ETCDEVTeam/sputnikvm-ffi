@@ -4,7 +4,7 @@ extern crate sputnikvm;
 
 mod common;
 
-pub use common::{c_address, c_gas, c_u256};
+pub use common::{c_address, c_gas, c_u256, c_h256};
 
 use std::slice;
 use std::ptr;
@@ -281,6 +281,18 @@ pub extern "C" fn sputnikvm_commit_nonexist(
         let vm: &mut VM = vm_box.deref_mut().deref_mut();
         let commitment = AccountCommitment::Nonexist(address.into());
         vm.commit_account(commitment);
+    }
+    Box::into_raw(vm_box);
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_commit_blockhash(
+    vm: *mut Box<VM>, number: c_u256, hash: c_h256
+) {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        vm.commit_blockhash(number.into(), hash.into());
     }
     Box::into_raw(vm_box);
 }

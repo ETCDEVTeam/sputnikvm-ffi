@@ -1,5 +1,5 @@
 use libc::{c_uchar, c_uint, c_longlong};
-use bigint::{U256, Gas, Address};
+use bigint::{U256, H256, Gas, Address};
 
 // We use big-endian representation for c_u256 and c_gas. Note that
 // however, in etcommon-bigint, it is little-endian representation.
@@ -99,6 +99,41 @@ impl From<U256> for c_u256 {
         let mut a = Self::default();
         for i in 0..32 {
             a.data[i] = val.index(i) as c_uchar;
+        }
+        a
+    }
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct c_h256 {
+    pub data: [c_uchar; 32],
+}
+
+impl Into<H256> for c_h256 {
+    fn into(self) -> H256 {
+        let mut a = [0u8; 32];
+        for i in 0..32 {
+            a[i] = self.data[i] as u8;
+        }
+        let b: &[u8] = &a;
+        H256::from(b)
+    }
+}
+
+impl Default for c_h256 {
+    fn default() -> c_h256 {
+        c_h256 {
+            data: [0; 32]
+        }
+    }
+}
+
+impl From<H256> for c_u256 {
+    fn from(val: H256) -> Self {
+        let mut a = Self::default();
+        for i in 0..32 {
+            a.data[i] = val[i] as c_uchar;
         }
         a
     }
