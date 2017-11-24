@@ -273,6 +273,19 @@ pub extern "C" fn sputnikvm_commit_account_storage(
 }
 
 #[no_mangle]
+pub extern "C" fn sputnikvm_commit_nonexist(
+    vm: *mut Box<VM>, address: c_address
+) {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        let commitment = AccountCommitment::Nonexist(address.into());
+        vm.commit_account(commitment);
+    }
+    Box::into_raw(vm_box);
+}
+
+#[no_mangle]
 pub extern "C" fn sputnikvm_default_transaction() -> c_transaction {
     c_transaction {
         caller: c_address::default(),
