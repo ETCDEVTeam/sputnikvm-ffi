@@ -233,6 +233,25 @@ pub extern "C" fn sputnikvm_commit_account(
 }
 
 #[no_mangle]
+pub extern "C" fn sputnikvm_commit_account_code(
+    vm: *mut Box<VM>, address: c_address, code: *mut u8, code_len: c_uint
+) {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        let commitment = AccountCommitment::Code {
+            address: address.into(),
+            code: {
+                let code = unsafe { slice::from_raw_parts(code, code_len as usize) };
+                Rc::new(code.into())
+            },
+        };
+        vm.commit_account(commitment);
+    }
+    Box::into_raw(vm_box);
+}
+
+#[no_mangle]
 pub extern "C" fn sputnikvm_default_transaction() -> c_transaction {
     c_transaction {
         caller: c_address::default(),
