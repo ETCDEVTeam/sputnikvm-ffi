@@ -214,7 +214,7 @@ pub extern "C" fn sputnikvm_fire(
 #[no_mangle]
 pub extern "C" fn sputnikvm_commit_account(
     vm: *mut Box<VM>, address: c_address, nonce: c_u256, balance: c_u256,
-    code: *mut u8, code_len: c_uint
+    code: *mut c_uchar, code_len: c_uint
 ) {
     let mut vm_box = unsafe { Box::from_raw(vm) };
     {
@@ -235,7 +235,7 @@ pub extern "C" fn sputnikvm_commit_account(
 
 #[no_mangle]
 pub extern "C" fn sputnikvm_commit_account_code(
-    vm: *mut Box<VM>, address: c_address, code: *mut u8, code_len: c_uint
+    vm: *mut Box<VM>, address: c_address, code: *mut c_uchar, code_len: c_uint
 ) {
     let mut vm_box = unsafe { Box::from_raw(vm) };
     {

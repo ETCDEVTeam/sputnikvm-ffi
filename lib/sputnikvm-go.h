@@ -10,6 +10,10 @@ typedef struct {
   unsigned char data[32];
 } sputnikvm_u256;
 
+typedef struct {
+  unsigned char data[32];
+} sputnikvm_h256;
+
 typedef unsigned char sputnikvm_action;
 extern const unsigned char CALL_ACTION;
 extern const unsigned char CREATE_ACTION;
@@ -73,6 +77,18 @@ sputnikvm_fire(sputnikvm_vm_t *vm);
 
 extern void
 sputnikvm_free(sputnikvm_vm_t *vm);
+
+extern void
+sputnikvm_commit_account(sputnikvm_vm_t *vm, sputnikvm_address address, sputnikvm_u256 nonce, sputnikvm_u256 balance, unsigned char *code, unsigned int code_len);
+
+extern void
+sputnikvm_commit_account_code(sputnikvm_vm_t *vm, sputnikvm_address address, unsigned char *code, unsigned int code_len);
+
+extern void
+sputnikvm_commit_account_storage(sputnikvm_vm_t *vm, sputnikvm_address address, sputnikvm_u256 key, sputnikvm_u256 value);
+
+extern void
+sputnikvm_commit_blockhash(sputnikvm_vm_t *vm, sputnikvm_u256 number, sputnikvm_h256 hash);
 
 extern sputnikvm_transaction
 sputnikvm_default_transaction(void);
