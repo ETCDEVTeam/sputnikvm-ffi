@@ -11,6 +11,7 @@ use std::ptr;
 use std::rc::Rc;
 use std::ops::DerefMut;
 use libc::{c_uchar, c_uint, c_longlong};
+use bigint::{U256, M256};
 use sputnikvm::{TransactionAction, ValidTransaction, HeaderParams, SeqTransactionVM, Patch,
                 MainnetFrontierPatch, MainnetHomesteadPatch, MainnetEIP150Patch, MainnetEIP160Patch,
                 VM, RequireError, AccountCommitment};
@@ -244,6 +245,26 @@ pub extern "C" fn sputnikvm_commit_account_code(
             code: {
                 let code = unsafe { slice::from_raw_parts(code, code_len as usize) };
                 Rc::new(code.into())
+            },
+        };
+        vm.commit_account(commitment);
+    }
+    Box::into_raw(vm_box);
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_commit_account_storage(
+    vm: *mut Box<VM>, address: c_address, index: c_u256, value: c_u256
+) {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        let commitment = AccountCommitment::Storage {
+            address: address.into(),
+            index: index.into(),
+            value: {
+                let value: U256 = value.into();
+                value.into()
             },
         };
         vm.commit_account(commitment);
