@@ -1,8 +1,8 @@
 package main
 
 /*
-#cgo LDFLAGS: -L./lib -lsputnikvm_go
-#include "./lib/sputnikvm-go.h"
+#cgo LDFLAGS: -L../c -lsputnikvm
+#include "../c/sputnikvm.h"
 */
 import "C"
 
