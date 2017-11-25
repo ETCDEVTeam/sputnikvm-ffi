@@ -150,6 +150,9 @@ sputnikvm_account_changes_len(sputnikvm_vm_t *vm);
 extern void
 sputnikvm_account_changes_copy_info(sputnikvm_vm_t *vm, sputnikvm_account_change *w, unsigned int len);
 
+extern int
+sputnikvm_account_changes_copy_storage(sputnikvm_vm_t *vm, sputnikvm_address address, sputnikvm_account_change_storage *w, unsigned int len);
+
 extern sputnikvm_transaction
 sputnikvm_default_transaction(void);
 

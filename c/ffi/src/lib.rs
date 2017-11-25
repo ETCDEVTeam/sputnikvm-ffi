@@ -10,6 +10,7 @@ use std::slice;
 use std::ptr;
 use std::rc::Rc;
 use std::ops::DerefMut;
+use std::collections::HashMap;
 use libc::{c_uchar, c_uint, c_longlong};
 use bigint::{U256, M256};
 use sputnikvm::{TransactionAction, ValidTransaction, HeaderParams, SeqTransactionVM, Patch,
@@ -532,6 +533,63 @@ pub extern "C" fn sputnikvm_account_changes_copy_info(
         }
     }
     Box::into_raw(vm_box);
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_account_changes_copy_storage(
+    vm: *mut Box<VM>, address: c_address, w: *mut c_account_change_storage, wl: c_uint
+) -> bool {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    let mut ret = false;
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        let accounts = vm.accounts();
+        let mut w = unsafe { slice::from_raw_parts_mut(w, wl as usize) };
+        let target_address = address.into();
+        for account in accounts {
+            match account {
+                &AccountChange::Full { address, ref changing_storage, .. } => {
+                    if address == target_address {
+                        let storage: HashMap<U256, M256> = changing_storage.clone().into();
+                        for (i, (key, value)) in storage.iter().enumerate() {
+                            if i < w.len() {
+                                w[i] = c_account_change_storage {
+                                    key: (*key).into(),
+                                    value: {
+                                        let u: U256 = (*value).into();
+                                        u.into()
+                                    }
+                                }
+                            }
+                        }
+                        ret = true;
+                        break;
+                    }
+                },
+                &AccountChange::Create { address, ref storage, exists, .. } => {
+                    if address == target_address && exists {
+                        let storage: HashMap<U256, M256> = storage.clone().into();
+                        for (i, (key, value)) in storage.iter().enumerate() {
+                            if i < w.len() {
+                                w[i] = c_account_change_storage {
+                                    key: (*key).into(),
+                                    value: {
+                                        let u: U256 = (*value).into();
+                                        u.into()
+                                    }
+                                }
+                            }
+                        }
+                        ret = true;
+                        break;
+                    }
+                },
+                _ => {},
+            }
+        }
+    }
+    Box::into_raw(vm_box);
+    ret
 }
 
 #[no_mangle]
