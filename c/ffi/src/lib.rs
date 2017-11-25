@@ -593,6 +593,49 @@ pub extern "C" fn sputnikvm_account_changes_copy_storage(
 }
 
 #[no_mangle]
+pub extern "C" fn sputnikvm_account_changes_copy_code(
+    vm: *mut Box<VM>, address: c_address, w: *mut u8, wl: c_uint
+) -> bool {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    let mut ret = false;
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        let accounts = vm.accounts();
+        let mut w = unsafe { slice::from_raw_parts_mut(w, wl as usize) };
+        let target_address = address.into();
+        for account in accounts {
+            match account {
+                &AccountChange::Full { address, ref code, .. } => {
+                    if address == target_address {
+                        for i in 0..w.len() {
+                            if i < code.len() {
+                                w[i] = code[i];
+                            }
+                        }
+                        ret = true;
+                        break;
+                    }
+                },
+                &AccountChange::Create { address, ref code, exists, .. } => {
+                    if address == target_address && exists {
+                        for i in 0..w.len() {
+                            if i < code.len() {
+                                w[i] = code[i];
+                            }
+                        }
+                        ret = true;
+                        break;
+                    }
+                },
+                _ => {},
+            }
+        }
+    }
+    Box::into_raw(vm_box);
+    ret
+}
+
+#[no_mangle]
 pub extern "C" fn sputnikvm_default_transaction() -> c_transaction {
     c_transaction {
         caller: c_address::default(),
