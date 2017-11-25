@@ -58,6 +58,12 @@ typedef struct {
   sputnikvm_require_value value;
 } sputnikvm_require;
 
+typedef struct {
+  sputnikvm_address address;
+  unsigned int topic_len;
+  unsigned int data_len;
+} sputnikvm_log;
+
 typedef struct sputnikvm_vm_S sputnikvm_vm_t;
 
 extern sputnikvm_vm_t *
@@ -89,6 +95,18 @@ sputnikvm_commit_account_storage(sputnikvm_vm_t *vm, sputnikvm_address address, 
 
 extern void
 sputnikvm_commit_blockhash(sputnikvm_vm_t *vm, sputnikvm_u256 number, sputnikvm_h256 hash);
+
+extern unsigned int
+sputnikvm_logs_len(sputnikvm_vm_t *vm);
+
+extern void
+sputnikvm_logs_copy_info(sputnikvm_vm_t *vm, sputnikvm_log *log, unsigned int log_len);
+
+extern sputnikvm_u256
+sputnikvm_logs_topic(sputnikvm_vm_t *vm, unsigned int log_index, unsigned int topic_index);
+
+extern void
+sputnikvm_logs_copy_data(sputnikvm_vm_t *vm, unsigned int log_index, unsigned char *data, unsigned int data_len);
 
 extern sputnikvm_transaction
 sputnikvm_default_transaction(void);

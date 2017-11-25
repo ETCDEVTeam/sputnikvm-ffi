@@ -73,6 +73,13 @@ pub struct c_require_value_account_storage {
     pub key: c_u256,
 }
 
+#[repr(C)]
+pub struct c_log {
+    pub address: c_address,
+    pub topic_len: c_uint,
+    pub data_len: c_uint,
+}
+
 fn sputnikvm_new<P: Patch + 'static>(
     transaction: c_transaction, header: c_header_params
 ) -> *mut Box<VM> {
@@ -293,6 +300,74 @@ pub extern "C" fn sputnikvm_commit_blockhash(
     {
         let vm: &mut VM = vm_box.deref_mut().deref_mut();
         vm.commit_blockhash(number.into(), hash.into());
+    }
+    Box::into_raw(vm_box);
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_logs_len(
+    vm: *mut Box<VM>
+) -> c_uint {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    let ret;
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        ret = vm.logs().len() as c_uint;
+    }
+    Box::into_raw(vm_box);
+    ret
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_logs_copy_info(
+    vm: *mut Box<VM>, log: *mut c_log, log_len: c_uint
+) {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        let logs = vm.logs();
+        let mut logs_write = unsafe { slice::from_raw_parts_mut(log, log_len as usize) };
+        for i in 0..logs_write.len() {
+            if i < logs.len() {
+                logs_write[i] = c_log {
+                    address: logs[i].address.into(),
+                    topic_len: logs[i].topics.len() as c_uint,
+                    data_len: logs[i].data.len() as c_uint,
+                };
+            }
+        }
+    }
+    Box::into_raw(vm_box);
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_logs_topic(
+    vm: *mut Box<VM>, log_index: c_uint, topic_index: c_uint
+) -> c_u256 {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    let ret;
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        ret = vm.logs()[log_index as usize].topics[topic_index as usize].into();
+    }
+    Box::into_raw(vm_box);
+    ret
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_logs_copy_data(
+    vm: *mut Box<VM>, log_index: c_uint, data_w: *mut u8, data_w_len: c_uint
+) {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        let logs = vm.logs();
+        let mut data_w = unsafe { slice::from_raw_parts_mut(data_w, data_w_len as usize) };
+        for i in 0..data_w.len() {
+            if i < logs[log_index as usize].data.len() {
+                data_w[i] = logs[log_index as usize].data[i];
+            }
+        }
     }
     Box::into_raw(vm_box);
 }
