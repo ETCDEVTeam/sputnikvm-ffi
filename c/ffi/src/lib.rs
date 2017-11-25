@@ -636,6 +636,18 @@ pub extern "C" fn sputnikvm_account_changes_copy_code(
 }
 
 #[no_mangle]
+pub extern "C" fn sputnikvm_used_gas(vm: *mut Box<VM>) -> c_gas {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    let ret;
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        ret = vm.used_gas().into();
+    }
+    Box::into_raw(vm_box);
+    ret
+}
+
+#[no_mangle]
 pub extern "C" fn sputnikvm_default_transaction() -> c_transaction {
     c_transaction {
         caller: c_address::default(),

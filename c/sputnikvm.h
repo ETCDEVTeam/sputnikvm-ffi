@@ -156,6 +156,9 @@ sputnikvm_account_changes_copy_storage(sputnikvm_vm_t *vm, sputnikvm_address add
 extern int
 sputnikvm_account_changes_copy_code(sputnikvm_vm_t *vm, sputnikvm_address address, unsigned char *w, unsigned int len);
 
+extern sputnikvm_gas
+sputnikvm_used_gas(sputnikvm_vm_t *vm);
+
 extern sputnikvm_transaction
 sputnikvm_default_transaction(void);
 
