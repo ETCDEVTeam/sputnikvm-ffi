@@ -5,9 +5,9 @@ build:
 doxygen:
 	doxygen
 
-deploy-docs:
+deploy-docs: doxygen
 	git add -f ./html
-	$treeObjId = git write-tree --prefix=./html
+	$(eval TREE_OBJ_ID := $(shell git write-tree --prefix=c/html))
 	git reset -- ./html
-	$commitId = git commit-tree -p gh-pages -m "Doc deployments" $treeObjId
-	git update-ref refs/heads/gh-pages $commitId
+	$(eval COMMIT_ID := $(shell git commit-tree -p gh-pages -m "Doc deployments" $(TREE_OBJ_ID)))
+	git update-ref refs/heads/gh-pages $(COMMIT_ID)
