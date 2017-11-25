@@ -14,7 +14,7 @@ use libc::{c_uchar, c_uint, c_longlong};
 use bigint::{U256, M256};
 use sputnikvm::{TransactionAction, ValidTransaction, HeaderParams, SeqTransactionVM, Patch,
                 MainnetFrontierPatch, MainnetHomesteadPatch, MainnetEIP150Patch, MainnetEIP160Patch,
-                VM, RequireError, AccountCommitment};
+                VM, RequireError, AccountCommitment, AccountChange};
 
 type c_action = c_uchar;
 #[no_mangle]
@@ -78,6 +78,51 @@ pub struct c_log {
     pub address: c_address,
     pub topic_len: c_uint,
     pub data_len: c_uint,
+}
+
+#[repr(C)]
+pub struct c_account_change {
+    pub typ: c_account_change_type,
+    pub value: c_account_change_value,
+}
+
+#[repr(C)]
+pub enum c_account_change_type {
+    increase_balance,
+    decrease_balance,
+    full,
+    create,
+    removed,
+}
+
+#[repr(C)]
+pub union c_account_change_value {
+    pub balance: c_account_change_value_balance,
+    pub all: c_account_change_value_all,
+    pub removed: c_address,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct c_account_change_value_balance {
+    pub address: c_address,
+    pub amount: c_u256,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct c_account_change_value_all {
+    pub address: c_address,
+    pub nonce: c_u256,
+    pub balance: c_u256,
+    pub storage_len: c_uint,
+    pub code_len: c_uint,
+}
+
+#[repr(C)]
+pub struct c_account_change_storage {
+    pub key: c_u256,
+    pub value: c_u256,
 }
 
 fn sputnikvm_new<P: Patch + 'static>(
@@ -222,8 +267,9 @@ pub extern "C" fn sputnikvm_fire(
 pub extern "C" fn sputnikvm_commit_account(
     vm: *mut Box<VM>, address: c_address, nonce: c_u256, balance: c_u256,
     code: *mut c_uchar, code_len: c_uint
-) {
+) -> bool {
     let mut vm_box = unsafe { Box::from_raw(vm) };
+    let ret;
     {
         let vm: &mut VM = vm_box.deref_mut().deref_mut();
         let commitment = AccountCommitment::Full {
@@ -235,16 +281,21 @@ pub extern "C" fn sputnikvm_commit_account(
                 Rc::new(code.into())
             },
         };
-        vm.commit_account(commitment);
+        match vm.commit_account(commitment) {
+            Ok(()) => { ret = true; }
+            Err(_) => { ret = false; }
+        }
     }
     Box::into_raw(vm_box);
+    ret
 }
 
 #[no_mangle]
 pub extern "C" fn sputnikvm_commit_account_code(
     vm: *mut Box<VM>, address: c_address, code: *mut c_uchar, code_len: c_uint
-) {
+) -> bool {
     let mut vm_box = unsafe { Box::from_raw(vm) };
+    let ret;
     {
         let vm: &mut VM = vm_box.deref_mut().deref_mut();
         let commitment = AccountCommitment::Code {
@@ -254,16 +305,21 @@ pub extern "C" fn sputnikvm_commit_account_code(
                 Rc::new(code.into())
             },
         };
-        vm.commit_account(commitment);
+        match vm.commit_account(commitment) {
+            Ok(()) => { ret = true; }
+            Err(_) => { ret = false; }
+        }
     }
     Box::into_raw(vm_box);
+    ret
 }
 
 #[no_mangle]
 pub extern "C" fn sputnikvm_commit_account_storage(
     vm: *mut Box<VM>, address: c_address, index: c_u256, value: c_u256
-) {
+) -> bool {
     let mut vm_box = unsafe { Box::from_raw(vm) };
+    let ret;
     {
         let vm: &mut VM = vm_box.deref_mut().deref_mut();
         let commitment = AccountCommitment::Storage {
@@ -274,34 +330,48 @@ pub extern "C" fn sputnikvm_commit_account_storage(
                 value.into()
             },
         };
-        vm.commit_account(commitment);
+        match vm.commit_account(commitment) {
+            Ok(()) => { ret = true; }
+            Err(_) => { ret = false; }
+        }
     }
     Box::into_raw(vm_box);
+    ret
 }
 
 #[no_mangle]
 pub extern "C" fn sputnikvm_commit_nonexist(
     vm: *mut Box<VM>, address: c_address
-) {
+) -> bool {
     let mut vm_box = unsafe { Box::from_raw(vm) };
+    let ret;
     {
         let vm: &mut VM = vm_box.deref_mut().deref_mut();
         let commitment = AccountCommitment::Nonexist(address.into());
-        vm.commit_account(commitment);
+        match vm.commit_account(commitment) {
+            Ok(()) => { ret = true; }
+            Err(_) => { ret = false; }
+        }
     }
     Box::into_raw(vm_box);
+    ret
 }
 
 #[no_mangle]
 pub extern "C" fn sputnikvm_commit_blockhash(
     vm: *mut Box<VM>, number: c_u256, hash: c_h256
-) {
+) -> bool {
     let mut vm_box = unsafe { Box::from_raw(vm) };
+    let ret;
     {
         let vm: &mut VM = vm_box.deref_mut().deref_mut();
-        vm.commit_blockhash(number.into(), hash.into());
+        match vm.commit_blockhash(number.into(), hash.into()) {
+            Ok(()) => { ret = true; }
+            Err(_) => { ret = false; }
+        }
     }
     Box::into_raw(vm_box);
+    ret
 }
 
 #[no_mangle]
@@ -366,6 +436,98 @@ pub extern "C" fn sputnikvm_logs_copy_data(
         for i in 0..data_w.len() {
             if i < logs[log_index as usize].data.len() {
                 data_w[i] = logs[log_index as usize].data[i];
+            }
+        }
+    }
+    Box::into_raw(vm_box);
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_account_changes_len(
+    vm: *mut Box<VM>
+) -> c_uint {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    let ret;
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        ret = vm.accounts().len() as c_uint;
+    }
+    Box::into_raw(vm_box);
+    ret
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_account_changes_copy_info(
+    vm: *mut Box<VM>, w: *mut c_account_change, wl: c_uint
+) {
+    let mut vm_box = unsafe { Box::from_raw(vm) };
+    {
+        let vm: &mut VM = vm_box.deref_mut().deref_mut();
+        let accounts = vm.accounts();
+        let mut w = unsafe { slice::from_raw_parts_mut(w, wl as usize) };
+        for (i, account) in accounts.enumerate() {
+            if i < w.len() {
+                w[i] = match account {
+                    &AccountChange::Full { nonce, address, balance, ref changing_storage, ref code } => {
+                        c_account_change {
+                            typ: c_account_change_type::full,
+                            value: c_account_change_value {
+                                all: c_account_change_value_all {
+                                    address: address.into(),
+                                    nonce: nonce.into(),
+                                    balance: balance.into(),
+                                    storage_len: changing_storage.len() as c_uint,
+                                    code_len: code.len() as c_uint,
+                                },
+                            },
+                        }
+                    },
+                    &AccountChange::Create { nonce, address, balance, ref storage, ref code, exists } => {
+                        if exists {
+                            c_account_change {
+                                typ: c_account_change_type::create,
+                                value: c_account_change_value {
+                                    all: c_account_change_value_all {
+                                        address: address.into(),
+                                        nonce: nonce.into(),
+                                        balance: balance.into(),
+                                        storage_len: storage.len() as c_uint,
+                                        code_len: code.len() as c_uint,
+                                    },
+                                },
+                            }
+                        } else {
+                            c_account_change {
+                                typ: c_account_change_type::removed,
+                                value: c_account_change_value {
+                                    removed: address.into(),
+                                },
+                            }
+                        }
+                    },
+                    &AccountChange::IncreaseBalance(address, amount) => {
+                        c_account_change {
+                            typ: c_account_change_type::increase_balance,
+                            value: c_account_change_value {
+                                balance: c_account_change_value_balance {
+                                    address: address.into(),
+                                    amount: amount.into(),
+                                },
+                            }
+                        }
+                    },
+                    &AccountChange::DecreaseBalance(address, amount) => {
+                        c_account_change {
+                            typ: c_account_change_type::decrease_balance,
+                            value: c_account_change_value {
+                                balance: c_account_change_value_balance {
+                                    address: address.into(),
+                                    amount: amount.into(),
+                                },
+                            }
+                        }
+                    },
+                }
             }
         }
     }

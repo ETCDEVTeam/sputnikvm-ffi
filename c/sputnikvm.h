@@ -64,6 +64,39 @@ typedef struct {
   unsigned int data_len;
 } sputnikvm_log;
 
+typedef enum {
+  increase_balance, decrease_balance, full, create, removed
+} sputnikvm_account_change_type;
+
+typedef struct {
+  sputnikvm_address address;
+  sputnikvm_u256 amount;
+} sputnikvm_account_change_value_balance;
+
+typedef struct {
+  sputnikvm_address address;
+  sputnikvm_u256 nonce;
+  sputnikvm_u256 balance;
+  unsigned int storage_len;
+  unsigned int code_len;
+} sputnikvm_account_change_value_all;
+
+typedef union {
+  sputnikvm_account_change_value_balance balance;
+  sputnikvm_account_change_value_all all;
+  sputnikvm_address removed;
+} sputnikvm_account_change_value;
+
+typedef struct {
+  sputnikvm_account_change_type type;
+  sputnikvm_account_change_value value;
+} sputnikvm_account_change;
+
+typedef struct {
+  sputnikvm_u256 key;
+  sputnikvm_u256 value;
+} sputnikvm_account_change_storage;
+
 typedef struct sputnikvm_vm_S sputnikvm_vm_t;
 
 extern sputnikvm_vm_t *
@@ -84,16 +117,19 @@ sputnikvm_fire(sputnikvm_vm_t *vm);
 extern void
 sputnikvm_free(sputnikvm_vm_t *vm);
 
-extern void
+extern int
 sputnikvm_commit_account(sputnikvm_vm_t *vm, sputnikvm_address address, sputnikvm_u256 nonce, sputnikvm_u256 balance, unsigned char *code, unsigned int code_len);
 
-extern void
+extern int
 sputnikvm_commit_account_code(sputnikvm_vm_t *vm, sputnikvm_address address, unsigned char *code, unsigned int code_len);
 
-extern void
+extern int
 sputnikvm_commit_account_storage(sputnikvm_vm_t *vm, sputnikvm_address address, sputnikvm_u256 key, sputnikvm_u256 value);
 
-extern void
+extern int
+sputnikvm_commit_nonexist(sputnikvm_vm_t *vm, sputnikvm_address address);
+
+extern int
 sputnikvm_commit_blockhash(sputnikvm_vm_t *vm, sputnikvm_u256 number, sputnikvm_h256 hash);
 
 extern unsigned int
@@ -107,6 +143,12 @@ sputnikvm_logs_topic(sputnikvm_vm_t *vm, unsigned int log_index, unsigned int to
 
 extern void
 sputnikvm_logs_copy_data(sputnikvm_vm_t *vm, unsigned int log_index, unsigned char *data, unsigned int data_len);
+
+extern unsigned int
+sputnikvm_account_changes_len(sputnikvm_vm_t *vm);
+
+extern void
+sputnikvm_account_changes_copy_info(sputnikvm_vm_t *vm, sputnikvm_account_change *w, unsigned int len);
 
 extern sputnikvm_transaction
 sputnikvm_default_transaction(void);
