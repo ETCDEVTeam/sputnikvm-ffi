@@ -4,7 +4,7 @@ version = "0.0.0"
 authors = ["Wei Tang <hi@that.world>"]
 
 [lib]
-crate-type = ["staticlib"]
+crate-type = ["staticlib", "cdylib"]
 
 [dependencies]
 libc = "0.2"
