@@ -38,8 +38,16 @@ func ToCU256(v *big.Int) C.sputnikvm_u256 {
 	return *cu256
 }
 
-func ToCGas(v *big.Int) *C.sputnikvm_gas {
-	panic("not implemented")
+func ToCGas(v *big.Int) C.sputnikvm_gas {
+	bytes := v.Bytes()
+	cgas := new(C.sputnikvm_gas)
+	for i := 0; i < 32; i++ {
+		if i < (32 - len(bytes)) {
+			continue
+		}
+		cgas.data[i] = C.uchar(bytes[i - (32 - len(bytes))])
+	}
+	return *cgas
 }
 
 func ToCAddress(v common.Address) *C.sputnikvm_address {
