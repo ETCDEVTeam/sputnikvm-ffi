@@ -50,8 +50,12 @@ func ToCGas(v *big.Int) C.sputnikvm_gas {
 	return *cgas
 }
 
-func ToCAddress(v common.Address) *C.sputnikvm_address {
-	panic("not implemented")
+func ToCAddress(v common.Address) C.sputnikvm_address {
+	caddress := new(C.sputnikvm_address)
+	for i := 0; i < 20; i++ {
+		caddress.data[i] = C.uchar(v[i])
+	}
+	return *caddress
 }
 
 func ToCTransaction(transaction *Transaction) *C.sputnikvm_transaction {
