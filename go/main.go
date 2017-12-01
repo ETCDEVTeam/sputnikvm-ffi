@@ -1,9 +1,6 @@
 package main
 
-/*
-#cgo LDFLAGS: ../c/libsputnikvm.a -ldl
-#include "../c/sputnikvm.h"
-*/
+// #include "../c/sputnikvm.h"
 import "C"
 
 import (
@@ -13,9 +10,11 @@ import (
 )
 
 func main() {
-	goint := big.NewInt(5)
+	goint := big.NewInt(100000000000000)
 	cint := sputnikvm.ToCU256(goint)
 	fmt.Printf("%v", cint)
+	sputnikvm.PrintCU256(cint)
+
 	transaction := C.sputnikvm_default_transaction()
 	header := C.sputnikvm_default_header_params()
 	vm := C.sputnikvm_new_frontier(transaction, header)

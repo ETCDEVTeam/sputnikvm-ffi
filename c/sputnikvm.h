@@ -32,6 +32,9 @@ typedef struct {
   unsigned char data[32];
 } sputnikvm_h256;
 
+extern void
+print_u256(sputnikvm_u256 v);
+
 /**
  * Action item used in a transaction, can be either CALL_ACTION or
  * CREATE_ACTION.

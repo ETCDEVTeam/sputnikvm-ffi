@@ -126,6 +126,12 @@ pub struct c_account_change_storage {
     pub value: c_u256,
 }
 
+#[no_mangle]
+pub extern "C" fn print_u256(v: c_u256) {
+    let v: U256 = v.into();
+    println!("{}", v);
+}
+
 fn sputnikvm_new<P: Patch + 'static>(
     transaction: c_transaction, header: c_header_params
 ) -> *mut Box<VM> {

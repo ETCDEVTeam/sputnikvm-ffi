@@ -22,13 +22,20 @@ type Transaction struct {
 	Nonce *big.Int
 }
 
-func ToCU256(v *big.Int) *C.sputnikvm_u256 {
+func PrintCU256(v C.sputnikvm_u256) {
+	C.print_u256(v)
+}
+
+func ToCU256(v *big.Int) C.sputnikvm_u256 {
 	bytes := v.Bytes()
 	cu256 := new(C.sputnikvm_u256)
-	for i, b := range bytes {
-		cu256.data[i] = C.uchar(b)
+	for i := 0; i < 32; i++ {
+		if i < (32 - len(bytes)) {
+			continue
+		}
+		cu256.data[i] = C.uchar(bytes[i - (32 - len(bytes))])
 	}
-	return cu256
+	return *cu256
 }
 
 func ToCGas(v *big.Int) *C.sputnikvm_gas {
