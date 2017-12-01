@@ -21,3 +21,24 @@ type Transaction struct {
 	Input []byte
 	Nonce *big.Int
 }
+
+func ToCU256(v *big.Int) *C.sputnikvm_u256 {
+	bytes := v.Bytes()
+	cu256 := new(C.sputnikvm_u256)
+	for i, b := range bytes {
+		cu256.data[i] = C.uchar(b)
+	}
+	return cu256
+}
+
+func ToCGas(v *big.Int) *C.sputnikvm_gas {
+	panic("not implemented")
+}
+
+func ToCAddress(v common.Address) *C.sputnikvm_address {
+	panic("not implemented")
+}
+
+func ToCTransaction(transaction *Transaction) *C.sputnikvm_transaction {
+	panic("not implemented")
+}
