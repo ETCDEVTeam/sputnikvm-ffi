@@ -32,7 +32,7 @@ const (
 )
 
 type Require struct {
-	c *C.sputnikvm_require
+	c C.sputnikvm_require
 }
 
 func (require *Require) Typ() RequireType {
@@ -274,8 +274,10 @@ func NewEIP160(transaction *Transaction, header *HeaderParams) *VM {
 	return vm
 }
 
-func (vm *VM) Fire() C.sputnikvm_require {
-	return C.sputnikvm_fire(vm.c)
+func (vm *VM) Fire() Require {
+	return Require {
+		c: C.sputnikvm_fire(vm.c),
+	}
 }
 
 func (vm *VM) Free() {
@@ -325,4 +327,9 @@ func (vm *VM) CommitBlockhash(number *big.Int, hash common.Hash) {
 	cnumber := ToCU256(number)
 	chash := ToCH256(hash)
 	C.sputnikvm_commit_blockhash(vm.c, cnumber, chash)
+}
+
+func (vm *VM) UsedGas() *big.Int {
+	cgas := C.sputnikvm_used_gas(vm.c)
+	return FromCGas(cgas)
 }
