@@ -307,3 +307,22 @@ func (vm *VM) CommitAccountCode(address common.Address, code []byte) {
 	C.sputnikvm_commit_account_code(vm.c, caddress, (*C.uchar)(ccode), C.uint(len(code)))
 	C.free(ccode)
 }
+
+func (vm *VM) CommitAccountStorage(address common.Address, key *big.Int, value *big.Int) {
+	caddress := ToCAddress(address)
+	ckey := ToCU256(key)
+	cvalue := ToCU256(value)
+
+	C.sputnikvm_commit_account_storage(vm.c, caddress, ckey, cvalue)
+}
+
+func (vm *VM) CommitNonexist(address common.Address) {
+	caddress := ToCAddress(address)
+	C.sputnikvm_commit_nonexist(vm.c, caddress)
+}
+
+func (vm *VM) CommitBlockhash(number *big.Int, hash common.Hash) {
+	cnumber := ToCU256(number)
+	chash := ToCH256(hash)
+	C.sputnikvm_commit_blockhash(vm.c, cnumber, chash)
+}
