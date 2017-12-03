@@ -1,6 +1,7 @@
 package sputnikvm
 
 // #include "../../c/sputnikvm.h"
+// #include <stdlib.h>
 import "C"
 
 import (
@@ -20,6 +21,14 @@ type Transaction struct {
 	Value *big.Int
 	Input []byte
 	Nonce *big.Int
+}
+
+type HeaderParams struct {
+	Beneficiary common.Address
+	Timestamp uint64
+	Number *big.Int
+	Difficulty *big.Int
+	GasLimit *big.Int
 }
 
 func PrintCU256(v C.sputnikvm_u256) {
@@ -58,6 +67,38 @@ func ToCAddress(v common.Address) C.sputnikvm_address {
 	return *caddress
 }
 
-func ToCTransaction(transaction *Transaction) *C.sputnikvm_transaction {
-	panic("not implemented")
+func toCTransaction(transaction *Transaction) *C.sputnikvm_transaction {
+	// Malloc input length memory and must be freed manually.
+
+	ctransaction := new(C.sputnikvm_transaction)
+	cinput := C.malloc(C.size_t(len(transaction.Input)))
+	for i := 0; i < len(transaction.Input); i++ {
+		(*(*[]C.uchar)(cinput))[i] = C.uchar(transaction.Input[i])
+	}
+	ctransaction.caller = ToCAddress(transaction.Caller)
+	ctransaction.gas_price = ToCGas(transaction.GasPrice)
+	ctransaction.gas_limit = ToCGas(transaction.GasLimit)
+	if transaction.Address == nil {
+		ctransaction.action = C.sputnikvm_action(C.CREATE_ACTION)
+	} else {
+		ctransaction.action = C.sputnikvm_action(C.CALL_ACTION)
+		ctransaction.action_address = ToCAddress(*transaction.Address)
+	}
+	ctransaction.value = ToCU256(transaction.Value)
+	ctransaction.input = (*C.uchar)(cinput)
+	ctransaction.input_len = C.uint(len(transaction.Input))
+	ctransaction.nonce = ToCU256(transaction.Nonce)
+
+	return ctransaction
+}
+
+func ToCHeaderParams(header *HeaderParams) *C.sputnikvm_header_params {
+	cheader := new(C.sputnikvm_header_params)
+	cheader.beneficiary = ToCAddress(header.Beneficiary)
+	cheader.timestamp = C.ulonglong(header.Timestamp)
+	cheader.number = ToCU256(header.Number)
+	cheader.difficulty = ToCU256(header.Difficulty)
+	cheader.gas_limit = ToCGas(header.GasLimit)
+
+	return cheader
 }
