@@ -29,8 +29,8 @@ cd c
 make build
 ```
 
-When building your Go application, pass the `CGO_LDFLAGS` to link the
-C library.
+When building your Go application, pass `CGO_LDFLAGS` to link the C
+library.
 
 ```
 CGO_LDFLAGS="/path/to/libsputnikvm.a -ldl" go build .
