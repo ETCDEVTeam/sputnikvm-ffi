@@ -420,7 +420,7 @@ pub extern "C" fn sputnikvm_logs_copy_info(
 #[no_mangle]
 pub extern "C" fn sputnikvm_logs_topic(
     vm: *mut Box<VM>, log_index: c_uint, topic_index: c_uint
-) -> c_u256 {
+) -> c_h256 {
     let mut vm_box = unsafe { Box::from_raw(vm) };
     let ret;
     {

@@ -222,7 +222,7 @@ sputnikvm_logs_copy_info(sputnikvm_vm_t *vm, sputnikvm_log *log, unsigned int lo
  * Get the given VM logs topic. The log_index and topic_index must be
  * within the limit fetched from logs_len and logs_info.
  */
-extern sputnikvm_u256
+extern sputnikvm_h256
 sputnikvm_logs_topic(sputnikvm_vm_t *vm, unsigned int log_index, unsigned int topic_index);
 
 /**

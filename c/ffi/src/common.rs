@@ -129,7 +129,7 @@ impl Default for c_h256 {
     }
 }
 
-impl From<H256> for c_u256 {
+impl From<H256> for c_h256 {
     fn from(val: H256) -> Self {
         let mut a = Self::default();
         for i in 0..32 {
