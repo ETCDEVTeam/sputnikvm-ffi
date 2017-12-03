@@ -97,7 +97,7 @@ typedef struct {
 } sputnikvm_log;
 
 typedef enum {
-  increase_balance, decrease_balance, full, create, removed
+  account_change_increase_balance, account_change_decrease_balance, account_change_full, account_change_create, account_change_removed
 } sputnikvm_account_change_type;
 
 typedef struct {
