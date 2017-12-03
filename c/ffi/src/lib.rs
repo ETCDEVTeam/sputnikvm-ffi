@@ -489,27 +489,26 @@ pub extern "C" fn sputnikvm_account_changes_copy_info(
                             },
                         }
                     },
-                    &AccountChange::Create { nonce, address, balance, ref storage, ref code, exists } => {
-                        if exists {
-                            c_account_change {
-                                typ: c_account_change_type::create,
-                                value: c_account_change_value {
-                                    all: c_account_change_value_all {
-                                        address: address.into(),
-                                        nonce: nonce.into(),
-                                        balance: balance.into(),
-                                        storage_len: storage.len() as c_uint,
-                                        code_len: code.len() as c_uint,
-                                    },
+                    &AccountChange::Create { nonce, address, balance, ref storage, ref code } => {
+                        c_account_change {
+                            typ: c_account_change_type::create,
+                            value: c_account_change_value {
+                                all: c_account_change_value_all {
+                                    address: address.into(),
+                                    nonce: nonce.into(),
+                                    balance: balance.into(),
+                                    storage_len: storage.len() as c_uint,
+                                    code_len: code.len() as c_uint,
                                 },
-                            }
-                        } else {
-                            c_account_change {
-                                typ: c_account_change_type::removed,
-                                value: c_account_change_value {
-                                    removed: address.into(),
-                                },
-                            }
+                            },
+                        }
+                    },
+                    &AccountChange::Nonexist(address) => {
+                        c_account_change {
+                            typ: c_account_change_type::removed,
+                            value: c_account_change_value {
+                                removed: address.into(),
+                            },
                         }
                     },
                     &AccountChange::IncreaseBalance(address, amount) => {
@@ -572,8 +571,8 @@ pub extern "C" fn sputnikvm_account_changes_copy_storage(
                         break;
                     }
                 },
-                &AccountChange::Create { address, ref storage, exists, .. } => {
-                    if address == target_address && exists {
+                &AccountChange::Create { address, ref storage, .. } => {
+                    if address == target_address {
                         let storage: HashMap<U256, M256> = storage.clone().into();
                         for (i, (key, value)) in storage.iter().enumerate() {
                             if i < w.len() {
@@ -622,8 +621,8 @@ pub extern "C" fn sputnikvm_account_changes_copy_code(
                         break;
                     }
                 },
-                &AccountChange::Create { address, ref code, exists, .. } => {
-                    if address == target_address && exists {
+                &AccountChange::Create { address, ref code, .. } => {
+                    if address == target_address {
                         for i in 0..w.len() {
                             if i < code.len() {
                                 w[i] = code[i];

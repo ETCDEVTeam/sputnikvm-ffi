@@ -407,8 +407,9 @@ func NewEIP160(transaction *Transaction, header *HeaderParams) *VM {
 }
 
 func (vm *VM) Fire() Require {
+	ret := C.sputnikvm_fire(vm.c)
 	return Require {
-		c: C.sputnikvm_fire(vm.c),
+		c: ret,
 	}
 }
 
