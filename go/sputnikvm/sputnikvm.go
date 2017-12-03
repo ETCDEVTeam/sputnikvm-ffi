@@ -5,6 +5,7 @@ package sputnikvm
 import "C"
 
 import (
+	"unsafe"
 	"math/big"
 	"github.com/ethereumproject/go-ethereum/common"
 )
@@ -67,13 +68,14 @@ func ToCAddress(v common.Address) C.sputnikvm_address {
 	return *caddress
 }
 
-func toCTransaction(transaction *Transaction) *C.sputnikvm_transaction {
+func toCTransaction(transaction *Transaction) (*C.sputnikvm_transaction, unsafe.Pointer) {
 	// Malloc input length memory and must be freed manually.
 
 	ctransaction := new(C.sputnikvm_transaction)
 	cinput := C.malloc(C.size_t(len(transaction.Input)))
 	for i := 0; i < len(transaction.Input); i++ {
-		(*(*[]C.uchar)(cinput))[i] = C.uchar(transaction.Input[i])
+		i_cinput := unsafe.Pointer(uintptr(cinput) + uintptr(i))
+		*(*C.uchar)(i_cinput) = C.uchar(transaction.Input[i])
 	}
 	ctransaction.caller = ToCAddress(transaction.Caller)
 	ctransaction.gas_price = ToCGas(transaction.GasPrice)
@@ -89,7 +91,7 @@ func toCTransaction(transaction *Transaction) *C.sputnikvm_transaction {
 	ctransaction.input_len = C.uint(len(transaction.Input))
 	ctransaction.nonce = ToCU256(transaction.Nonce)
 
-	return ctransaction
+	return ctransaction, cinput
 }
 
 func ToCHeaderParams(header *HeaderParams) *C.sputnikvm_header_params {
@@ -101,4 +103,25 @@ func ToCHeaderParams(header *HeaderParams) *C.sputnikvm_header_params {
 	cheader.gas_limit = ToCGas(header.GasLimit)
 
 	return cheader
+}
+
+func NewFrontier(transaction *Transaction, header *HeaderParams) *VM {
+	ctransaction, cinput := toCTransaction(transaction)
+	cheader := ToCHeaderParams(header)
+
+	cvm := C.sputnikvm_new_frontier(*ctransaction, *cheader)
+	C.free(cinput)
+
+	vm := new(VM)
+	vm.c = cvm
+
+	return vm
+}
+
+func (vm *VM) Fire() C.sputnikvm_require {
+	return C.sputnikvm_fire(vm.c)
+}
+
+func (vm *VM) Free() {
+	C.sputnikvm_free(vm.c)
 }

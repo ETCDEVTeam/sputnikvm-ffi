@@ -1,11 +1,9 @@
 package main
 
-// #include "../c/sputnikvm.h"
-import "C"
-
 import (
 	"fmt"
 	"math/big"
+	"github.com/ethereumproject/go-ethereum/common"
 	"github.com/ethereumproject/sputnikvm-ffi/go/sputnikvm"
 )
 
@@ -15,10 +13,26 @@ func main() {
 	fmt.Printf("%v", cint)
 	sputnikvm.PrintCU256(cint)
 
-	transaction := C.sputnikvm_default_transaction()
-	header := C.sputnikvm_default_header_params()
-	vm := C.sputnikvm_new_frontier(transaction, header)
-	ret := C.sputnikvm_fire(vm)
+	transaction := sputnikvm.Transaction {
+		Caller: *new(common.Address),
+		GasPrice: new(big.Int),
+		GasLimit: new(big.Int),
+		Address: new(common.Address),
+		Value: new(big.Int),
+		Input: []byte{1, 2, 3, 4, 5},
+		Nonce: new(big.Int),
+	}
+
+	header := sputnikvm.HeaderParams {
+		Beneficiary: *new(common.Address),
+		Timestamp: 0,
+		Number: new(big.Int),
+		Difficulty: new(big.Int),
+		GasLimit: new(big.Int),
+	}
+
+	vm := sputnikvm.NewFrontier(&transaction, &header)
+	ret := vm.Fire()
 	fmt.Printf("%v", ret)
-	C.sputnikvm_free(vm)
+	vm.Free()
 }
