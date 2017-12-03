@@ -83,6 +83,12 @@ func (require *Require) BlockNumber() *big.Int {
 	}
 }
 
+type Log struct {
+	Address common.Address
+	Topics []common.Hash
+	Data []byte
+}
+
 type VM struct {
 	c *C.sputnikvm_vm_t
 }
@@ -332,4 +338,33 @@ func (vm *VM) CommitBlockhash(number *big.Int, hash common.Hash) {
 func (vm *VM) UsedGas() *big.Int {
 	cgas := C.sputnikvm_used_gas(vm.c)
 	return FromCGas(cgas)
+}
+
+func (vm *VM) Logs() []Log {
+	logs := make([]Log, 0)
+	l := uint(C.sputnikvm_logs_len(vm.c))
+	clogs := C.malloc(C.size_t(C.sizeof_sputnikvm_log * l))
+	C.sputnikvm_logs_copy_info(vm.c, (*C.sputnikvm_log)(clogs), C.uint(l))
+	for i := 0; i < int(l); i++ {
+		i_clog := unsafe.Pointer(uintptr(clogs) + (uintptr(i) * uintptr(C.sizeof_sputnikvm_log)))
+		clog := (*C.sputnikvm_log)(i_clog)
+		address := FromCAddress(clog.address)
+		topics := make([]common.Hash, 0)
+		for j := 0; j < int(uint(clog.topic_len)); j++ {
+			topics = append(topics, FromCH256(C.sputnikvm_logs_topic(vm.c, C.uint(i), C.uint(j))))
+		}
+		cdata := C.malloc(C.size_t(clog.data_len))
+		C.sputnikvm_logs_copy_data(vm.c, C.uint(i), (*C.uchar)(cdata), C.uint(clog.data_len))
+		data := make([]byte, int(uint(clog.data_len)))
+		for j := 0; j < int(uint(clog.data_len)); j++ {
+			j_cdata := unsafe.Pointer(uintptr(cdata) + uintptr(j))
+			data[j] = byte(*(*C.uchar)(j_cdata))
+		}
+		logs = append(logs, Log {
+			Address: address,
+			Topics: topics,
+			Data: data,
+		})
+	}
+	return logs
 }
