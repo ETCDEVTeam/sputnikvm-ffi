@@ -118,6 +118,45 @@ func NewFrontier(transaction *Transaction, header *HeaderParams) *VM {
 	return vm
 }
 
+func NewHomestead(transaction *Transaction, header *HeaderParams) *VM {
+	ctransaction, cinput := toCTransaction(transaction)
+	cheader := ToCHeaderParams(header)
+
+	cvm := C.sputnikvm_new_homestead(*ctransaction, *cheader)
+	C.free(cinput)
+
+	vm := new(VM)
+	vm.c = cvm
+
+	return vm
+}
+
+func NewEIP150(transaction *Transaction, header *HeaderParams) *VM {
+	ctransaction, cinput := toCTransaction(transaction)
+	cheader := ToCHeaderParams(header)
+
+	cvm := C.sputnikvm_new_eip150(*ctransaction, *cheader)
+	C.free(cinput)
+
+	vm := new(VM)
+	vm.c = cvm
+
+	return vm
+}
+
+func NewEIP160(transaction *Transaction, header *HeaderParams) *VM {
+	ctransaction, cinput := toCTransaction(transaction)
+	cheader := ToCHeaderParams(header)
+
+	cvm := C.sputnikvm_new_eip160(*ctransaction, *cheader)
+	C.free(cinput)
+
+	vm := new(VM)
+	vm.c = cvm
+
+	return vm
+}
+
 func (vm *VM) Fire() C.sputnikvm_require {
 	return C.sputnikvm_fire(vm.c)
 }
