@@ -14,6 +14,18 @@ package sputnikvm
 // sputnikvm_u256 sputnikvm_require_value_read_blockhash(sputnikvm_require_value v) {
 //   return v.blockhash;
 // }
+//
+// sputnikvm_account_change_value_balance sputnikvm_account_change_value_read_balance(sputnikvm_account_change_value v) {
+//   return v.balance;
+// }
+//
+// sputnikvm_account_change_value_all sputnikvm_account_change_value_read_all(sputnikvm_account_change_value v) {
+//   return v.all;
+// }
+//
+// sputnikvm_address sputnikvm_account_change_value_read_removed(sputnikvm_account_change_value v) {
+//   return v.removed;
+// }
 import "C"
 
 import (
@@ -21,6 +33,116 @@ import (
 	"math/big"
 	"github.com/ethereumproject/go-ethereum/common"
 )
+
+type AccountChangeType int
+const (
+	AccountChangeIncreaseBalance = iota
+	AccountChangeDecreaseBalance
+	AccountChangeFull
+	AccountChangeCreate
+	AccountChangeRemoved
+)
+
+type AccountChangeStorageItem struct {
+	Key *big.Int
+	Value *big.Int
+}
+
+type AccountChange struct {
+	info C.sputnikvm_account_change
+	storage []AccountChangeStorageItem
+	code []byte
+}
+
+func (change *AccountChange) Typ() AccountChangeType {
+	switch change.info.typ {
+	case C.account_change_increase_balance:
+		return AccountChangeIncreaseBalance
+	case C.account_change_decrease_balance:
+		return AccountChangeDecreaseBalance
+	case C.account_change_full:
+		return AccountChangeFull
+	case C.account_change_create:
+		return AccountChangeCreate
+	case C.account_change_removed:
+		return AccountChangeRemoved
+	default:
+		panic("unreachable")
+	}
+}
+
+func (change *AccountChange) Address() common.Address {
+	switch change.Typ() {
+	case AccountChangeIncreaseBalance, AccountChangeDecreaseBalance:
+		balance := C.sputnikvm_account_change_value_read_balance(change.info.value)
+		return FromCAddress(balance.address)
+	case AccountChangeFull, AccountChangeCreate:
+		all := C.sputnikvm_account_change_value_read_all(change.info.value)
+		return FromCAddress(all.address)
+	case AccountChangeRemoved:
+		removed := C.sputnikvm_account_change_value_read_removed(change.info.value)
+		return FromCAddress(removed)
+	default:
+		panic("unreachable")
+	}
+}
+
+func (change *AccountChange) ChangedAmount() *big.Int {
+	switch change.Typ() {
+	case AccountChangeIncreaseBalance, AccountChangeDecreaseBalance:
+		balance := C.sputnikvm_account_change_value_read_balance(change.info.value)
+		return FromCU256(balance.amount)
+	default:
+		panic("Incorrect usage")
+	}
+}
+
+func (change *AccountChange) Nonce() *big.Int {
+	switch change.Typ() {
+	case AccountChangeFull, AccountChangeCreate:
+		all := C.sputnikvm_account_change_value_read_all(change.info.value)
+		return FromCU256(all.nonce)
+	default:
+		panic("incorrect usage")
+	}
+}
+
+func (change *AccountChange) Balance() *big.Int {
+	switch change.Typ() {
+	case AccountChangeFull, AccountChangeCreate:
+		all := C.sputnikvm_account_change_value_read_all(change.info.value)
+		return FromCU256(all.balance)
+	default:
+		panic("incorrect usage")
+	}
+}
+
+func (change *AccountChange) Code() []byte {
+	switch change.Typ() {
+	case AccountChangeFull, AccountChangeCreate:
+		return change.code
+	default:
+		panic("incorrect usage")
+	}
+}
+
+func (change *AccountChange) Storage() []AccountChangeStorageItem {
+	switch change.Typ() {
+	case AccountChangeCreate:
+		return change.storage
+	default:
+		panic("incorrect usage")
+	}
+}
+
+func (change *AccountChange) ChangedStorage() []AccountChangeStorageItem {
+	switch change.Typ() {
+	case AccountChangeFull:
+		return change.storage
+	default:
+		panic("incorrect usage")
+	}
+}
 
 type RequireType int
 const (
