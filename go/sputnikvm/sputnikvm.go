@@ -511,10 +511,9 @@ func (vm *VM) AccountChanges() []AccountChange {
 			storage: make([]AccountChangeStorageItem, 0),
 			code: make([]byte, 0),
 		}
-	Switch:
 		switch change.Typ() {
 		case AccountChangeIncreaseBalance, AccountChangeDecreaseBalance, AccountChangeRemoved:
-			break Switch
+			changes = append(changes, change)
 		case AccountChangeCreate, AccountChangeFull:
 			all := C.sputnikvm_account_change_value_read_all(change.info.value)
 			address := all.address
