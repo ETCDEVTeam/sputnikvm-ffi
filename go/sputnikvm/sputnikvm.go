@@ -1,3 +1,8 @@
+// This is a go binding for SputnikVM, an Ethereum Virtual Machine.
+//
+// Copyright (c) ETC Dev Team 2017. Licensed under Apache-2.
+// Authored by Wei Tang <hi@that.world>
+
 package sputnikvm
 
 // #include "../../c/sputnikvm.h"
