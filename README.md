@@ -15,6 +15,8 @@ interact with it. You can find the generated documentation file for
 
 ### Go
 
+<img src="./go/gopher.png" width="100" height="100" />
+
 Import the `sputnikvm` library to your application:
 
 ```
