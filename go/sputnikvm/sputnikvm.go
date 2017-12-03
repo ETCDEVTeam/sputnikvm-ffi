@@ -281,3 +281,29 @@ func (vm *VM) Fire() C.sputnikvm_require {
 func (vm *VM) Free() {
 	C.sputnikvm_free(vm.c)
 }
+
+func (vm *VM) CommitAccount(address common.Address, nonce *big.Int, balance *big.Int, code []byte) {
+	caddress := ToCAddress(address)
+	cnonce := ToCU256(nonce)
+	cbalance := ToCU256(balance)
+	ccode := C.malloc(C.size_t(len(code)))
+	for i := 0; i < len(code); i++ {
+		i_ccode := unsafe.Pointer(uintptr(ccode) + uintptr(i))
+		*(*C.uchar)(i_ccode) = C.uchar(code[i])
+	}
+
+	C.sputnikvm_commit_account(vm.c, caddress, cnonce, cbalance, (*C.uchar)(ccode), C.uint(len(code)))
+	C.free(ccode)
+}
+
+func (vm *VM) CommitAccountCode(address common.Address, code []byte) {
+	caddress := ToCAddress(address)
+	ccode := C.malloc(C.size_t(len(code)))
+	for i := 0; i < len(code); i++ {
+		i_ccode := unsafe.Pointer(uintptr(ccode) + uintptr(i))
+		*(*C.uchar)(i_ccode) = C.uchar(code[i])
+	}
+
+	C.sputnikvm_commit_account_code(vm.c, caddress, (*C.uchar)(ccode), C.uint(len(code)))
+	C.free(ccode)
+}
