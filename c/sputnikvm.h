@@ -71,7 +71,7 @@ typedef struct {
 } sputnikvm_header_params;
 
 typedef enum {
-  none, account, account_code, account_storage, blockhash
+  require_none, require_account, require_account_code, require_account_storage, require_blockhash
 } sputnikvm_require_type;
 
 typedef struct {
@@ -86,7 +86,7 @@ typedef union {
 } sputnikvm_require_value;
 
 typedef struct {
-  sputnikvm_require_type type;
+  sputnikvm_require_type typ;
   sputnikvm_require_value value;
 } sputnikvm_require;
 
@@ -120,7 +120,7 @@ typedef union {
 } sputnikvm_account_change_value;
 
 typedef struct {
-  sputnikvm_account_change_type type;
+  sputnikvm_account_change_type typ;
   sputnikvm_account_change_value value;
 } sputnikvm_account_change;
 
