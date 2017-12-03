@@ -365,6 +365,8 @@ func (vm *VM) Logs() []Log {
 			Topics: topics,
 			Data: data,
 		})
+		C.free(cdata)
 	}
+	C.free(clogs)
 	return logs
 }
