@@ -2,6 +2,18 @@ package sputnikvm
 
 // #include "../../c/sputnikvm.h"
 // #include <stdlib.h>
+//
+// sputnikvm_address sputnikvm_require_value_read_account(sputnikvm_require_value v) {
+//   return v.account;
+// }
+//
+// sputnikvm_require_value_account_storage sputnikvm_require_value_read_account_storage(sputnikvm_require_value v) {
+//   return v.account_storage;
+// }
+//
+// sputnikvm_u256 sputnikvm_require_value_read_blockhash(sputnikvm_require_value v) {
+//   return v.blockhash;
+// }
 import "C"
 
 import (
@@ -9,6 +21,67 @@ import (
 	"math/big"
 	"github.com/ethereumproject/go-ethereum/common"
 )
+
+type RequireType int
+const (
+	RequireNone = iota
+	RequireAccount
+	RequireAccountCode
+	RequireAccountStorage
+	RequireBlockhash
+)
+
+type Require struct {
+	c *C.sputnikvm_require
+}
+
+func (require *Require) Typ() RequireType {
+	switch require.c.typ {
+	case C.require_none:
+		return RequireNone
+	case C.require_account:
+		return RequireAccount
+	case C.require_account_code:
+		return RequireAccountCode
+	case C.require_account_storage:
+		return RequireAccountStorage
+	case C.require_blockhash:
+		return RequireBlockhash
+	default:
+		panic("unreachable")
+	}
+}
+
+func (require *Require) Address() common.Address {
+	switch require.Typ() {
+	case RequireAccount, RequireAccountCode:
+		return FromCAddress(C.sputnikvm_require_value_read_account(require.c.value))
+	case RequireAccountStorage:
+		return FromCAddress(C.sputnikvm_require_value_read_account_storage(require.c.value).address)
+	default:
+		panic("incorrect usage")
+	}
+}
+
+func (require *Require) StorageKey() *big.Int {
+	switch require.Typ() {
+	case RequireAccountStorage:
+		storage := C.sputnikvm_require_value_read_account_storage(require.c.value)
+		return FromCU256(storage.key)
+	default:
+		panic("incorrect usage")
+	}
+}
+
+func (require *Require) BlockNumber() *big.Int {
+	switch require.Typ() {
+	case RequireBlockhash:
+		number := C.sputnikvm_require_value_read_blockhash(require.c.value)
+		return FromCU256(number)
+	default:
+		panic("incorrect usage")
+	}
+}
 
 type VM struct {
 	c *C.sputnikvm_vm_t
@@ -48,6 +121,16 @@ func ToCU256(v *big.Int) C.sputnikvm_u256 {
 	return *cu256
 }
 
+func FromCU256(v C.sputnikvm_u256) *big.Int {
+	bytes := new([32]byte)
+	for i := 0; i < 32; i++ {
+		bytes[i] = byte(v.data[i])
+	}
+	i := new(big.Int)
+	i.SetBytes(bytes[0:32])
+	return i
+}
+
 func ToCGas(v *big.Int) C.sputnikvm_gas {
 	bytes := v.Bytes()
 	cgas := new(C.sputnikvm_gas)
@@ -60,12 +143,46 @@ func ToCGas(v *big.Int) C.sputnikvm_gas {
 	return *cgas
 }
 
+func FromCGas(v C.sputnikvm_gas) *big.Int {
+	bytes := new([32]byte)
+	for i := 0; i < 32; i++ {
+		bytes[i] = byte(v.data[i])
+	}
+	i := new(big.Int)
+	i.SetBytes(bytes[0:32])
+	return i
+}
+
 func ToCAddress(v common.Address) C.sputnikvm_address {
 	caddress := new(C.sputnikvm_address)
 	for i := 0; i < 20; i++ {
 		caddress.data[i] = C.uchar(v[i])
 	}
 	return *caddress
+}
+
+func FromCAddress(v C.sputnikvm_address) common.Address {
+	address := new(common.Address)
+	for i := 0; i < 20; i++ {
+		address[i] = byte(v.data[i])
+	}
+	return *address
+}
+
+func ToCH256(v common.Hash) C.sputnikvm_h256 {
+	chash := new(C.sputnikvm_h256)
+	for i := 0; i < 32; i++ {
+		chash.data[i] = C.uchar(v[i])
+	}
+	return *chash
+}
+
+func FromCH256(v C.sputnikvm_h256) common.Hash {
+	hash := new(common.Hash)
+	for i := 0; i < 32; i++ {
+		hash[i] = byte(v.data[i])
+	}
+	return *hash
 }
 
 func toCTransaction(transaction *Transaction) (*C.sputnikvm_transaction, unsafe.Pointer) {
