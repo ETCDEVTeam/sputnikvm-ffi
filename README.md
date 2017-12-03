@@ -15,7 +15,27 @@ interact with it. You can find the generated documentation file for
 
 ### Go
 
-Go binding is currently work-in-progress. See `go/main.go` for example
-usage, note that when building a Go application, you need to add the
-`-ldflags` option to the folder that contains the `libsputnikvm.so`
-file.
+Import the `sputnikvm` library to your application:
+
+```
+import "github.com/ethereumproject/sputnikvm-ffi/go/sputnikvm"
+```
+
+Build a static library for the C FFI, which will give you an
+`libsputnikvm.a` file:
+
+```
+cd c
+make build
+```
+
+When building your Go application, pass the `CGO_LDFLAGS` to link the
+C library.
+
+```
+CGO_LDFLAGS="/path/to/libsputnikvm.a -ldl" go build .
+```
+
+Refer to
+[GoDoc](https://godoc.org/github.com/ethereumproject/sputnikvm-ffi/go/sputnikvm)
+for documentation of the Go bindings.
