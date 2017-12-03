@@ -492,3 +492,59 @@ func (vm *VM) Logs() []Log {
 	C.free(clogs)
 	return logs
 }
+
+func (vm *VM) AccountChanges() []AccountChange {
+	changes := make([]AccountChange, 0)
+	l := uint(C.sputnikvm_account_changes_len(vm.c))
+	cchanges := C.malloc(C.size_t(C.sizeof_sputnikvm_account_change * l))
+	C.sputnikvm_account_changes_copy_info(vm.c, (*C.sputnikvm_account_change)(cchanges), C.uint(l))
+	for i := 0; i < int(l); i++ {
+		i_cchange := unsafe.Pointer(uintptr(cchanges) + (uintptr(i) * uintptr(C.sizeof_sputnikvm_account_change)))
+		cchange := (*C.sputnikvm_account_change)(i_cchange)
+		change := AccountChange {
+			info: *cchange,
+			storage: make([]AccountChangeStorageItem, 0),
+			code: make([]byte, 0),
+		}
+	Switch:
+		switch change.Typ() {
+		case AccountChangeIncreaseBalance, AccountChangeDecreaseBalance, AccountChangeRemoved:
+			break Switch
+		case AccountChangeCreate, AccountChangeFull:
+			all := C.sputnikvm_account_change_value_read_all(change.info.value)
+			address := all.address
+			storage_len := all.storage_len
+			code_len := all.code_len
+
+			cstorage := C.malloc(C.size_t(C.sizeof_sputnikvm_account_change_storage * uint(storage_len)))
+			C.sputnikvm_account_changes_copy_storage(vm.c, address, (*C.sputnikvm_account_change_storage)(cstorage), storage_len)
+			storage := make([]AccountChangeStorageItem, 0)
+			for j := 0; j < int(uint(storage_len)); j++ {
+				j_cstorage := unsafe.Pointer(uintptr(cstorage) + (uintptr(j) * uintptr(C.sizeof_sputnikvm_account_change_storage)))
+				citem := (*C.sputnikvm_account_change_storage)(j_cstorage)
+				storage = append(storage, AccountChangeStorageItem {
+					Key: FromCU256(citem.key),
+					Value: FromCU256(citem.value),
+				})
+			}
+			C.free(cstorage)
+
+			ccode := C.malloc(C.size_t(uint(code_len)))
+			C.sputnikvm_account_changes_copy_code(vm.c, address, (*C.uchar)(ccode), code_len)
+			code := make([]byte, int(uint(code_len)))
+			for j := 0; j < int(uint(code_len)); j++ {
+				j_ccode := unsafe.Pointer(uintptr(ccode) + uintptr(j))
+				code[j] = byte(*(*C.uchar)(j_ccode))
+			}
+			C.free(ccode)
+
+			change.storage = storage
+			change.code = code
+			changes = append(changes, change)
+		default:
+			panic("unreachable")
+		}
+	}
+	C.free(cchanges)
+	return changes
+}
