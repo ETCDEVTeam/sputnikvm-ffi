@@ -160,6 +160,34 @@ extern sputnikvm_vm_t *
 sputnikvm_new_eip160(sputnikvm_transaction transaction, sputnikvm_header_params header);
 
 /**
+ * Create a new frontier morden patch EVM instance using the given
+ * transaction and header parameters.
+ */
+extern sputnikvm_vm_t *
+sputnikvm_new_morden_frontier(sputnikvm_transaction transaction, sputnikvm_header_params header);
+
+/**
+ * Create a new homestead morden patch EVM instance using the given
+ * transaction and header parameters.
+ */
+extern sputnikvm_vm_t *
+sputnikvm_new_morden_homestead(sputnikvm_transaction transaction, sputnikvm_header_params header);
+
+/**
+ * Create a new EIP150 morden patch EVM instance using the given
+ * transaction and header parameters.
+ */
+extern sputnikvm_vm_t *
+sputnikvm_new_morden_eip150(sputnikvm_transaction transaction, sputnikvm_header_params header);
+
+/**
+ * Create a new EIP160 morden patch EVM instance using the given
+ * transaction and header parameters.
+ */
+extern sputnikvm_vm_t *
+sputnikvm_new_morden_eip160(sputnikvm_transaction transaction, sputnikvm_header_params header);
+
+/**
  * Execute the VM until it reaches a require error.
  */
 extern sputnikvm_require

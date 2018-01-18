@@ -15,13 +15,24 @@ use libc::{c_uchar, c_uint, c_longlong};
 use bigint::{U256, M256};
 use sputnikvm::{TransactionAction, ValidTransaction, HeaderParams, SeqTransactionVM, Patch,
                 MainnetFrontierPatch, MainnetHomesteadPatch, MainnetEIP150Patch, MainnetEIP160Patch,
-                VM, RequireError, AccountCommitment, AccountChange};
+                VM, RequireError, AccountCommitment, AccountChange,
+                FrontierPatch, HomesteadPatch, EIP150Patch, EIP160Patch, AccountPatch};
 
 type c_action = c_uchar;
 #[no_mangle]
 pub static CALL_ACTION: c_action = 0;
 #[no_mangle]
 pub static CREATE_ACTION: c_action = 1;
+
+pub struct MordenAccountPatch;
+impl AccountPatch for MordenAccountPatch {
+    fn initial_nonce() -> U256 { U256::from(1048576) }
+}
+
+pub type MordenFrontierPatch = FrontierPatch<MordenAccountPatch>;
+pub type MordenHomesteadPatch = HomesteadPatch<MordenAccountPatch>;
+pub type MordenEIP150Patch = EIP150Patch<MordenAccountPatch>;
+pub type MordenEIP160Patch = EIP160Patch<MordenAccountPatch>;
 
 #[repr(C)]
 pub struct c_transaction {
@@ -202,6 +213,34 @@ pub extern "C" fn sputnikvm_new_eip160(
     transaction: c_transaction, header: c_header_params
 ) -> *mut Box<VM> {
     sputnikvm_new::<MainnetEIP160Patch>(transaction, header)
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_new_morden_frontier(
+    transaction: c_transaction, header: c_header_params
+) -> *mut Box<VM> {
+    sputnikvm_new::<MordenFrontierPatch>(transaction, header)
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_new_morden_homestead(
+    transaction: c_transaction, header: c_header_params
+) -> *mut Box<VM> {
+    sputnikvm_new::<MordenHomesteadPatch>(transaction, header)
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_new_morden_eip150(
+    transaction: c_transaction, header: c_header_params
+) -> *mut Box<VM> {
+    sputnikvm_new::<MordenEIP150Patch>(transaction, header)
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_new_morden_eip160(
+    transaction: c_transaction, header: c_header_params
+) -> *mut Box<VM> {
+    sputnikvm_new::<MordenEIP160Patch>(transaction, header)
 }
 
 #[no_mangle]
