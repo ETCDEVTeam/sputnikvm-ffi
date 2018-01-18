@@ -34,6 +34,18 @@ pub type MordenHomesteadPatch = HomesteadPatch<MordenAccountPatch>;
 pub type MordenEIP150Patch = EIP150Patch<MordenAccountPatch>;
 pub type MordenEIP160Patch = EIP160Patch<MordenAccountPatch>;
 
+static mut CUSTOM_INITIAL_NONCE: Option<U256> = None;
+
+pub struct CustomAccountPatch;
+impl AccountPatch for CustomAccountPatch {
+    fn initial_nonce() -> U256 { U256::from(unsafe { CUSTOM_INITIAL_NONCE.unwrap() }) }
+}
+
+pub type CustomFrontierPatch = FrontierPatch<CustomAccountPatch>;
+pub type CustomHomesteadPatch = HomesteadPatch<CustomAccountPatch>;
+pub type CustomEIP150Patch = EIP150Patch<CustomAccountPatch>;
+pub type CustomEIP160Patch = EIP160Patch<CustomAccountPatch>;
+
 #[repr(C)]
 pub struct c_transaction {
     pub caller: c_address,
@@ -141,6 +153,14 @@ pub struct c_account_change_storage {
 pub extern "C" fn print_u256(v: c_u256) {
     let v: U256 = v.into();
     println!("{}", v);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn set_initial_nonce(v: c_u256) {
+    let v: U256 = v.into();
+    unsafe {
+        CUSTOM_INITIAL_NONCE = Some(v)
+    }
 }
 
 fn sputnikvm_new<P: Patch + 'static>(
