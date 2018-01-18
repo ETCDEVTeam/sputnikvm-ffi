@@ -156,7 +156,7 @@ pub extern "C" fn print_u256(v: c_u256) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn set_initial_nonce(v: c_u256) {
+pub unsafe extern "C" fn sputnikvm_set_custom_initial_nonce(v: c_u256) {
     let v: U256 = v.into();
     unsafe {
         CUSTOM_INITIAL_NONCE = Some(v)
@@ -261,6 +261,34 @@ pub extern "C" fn sputnikvm_new_morden_eip160(
     transaction: c_transaction, header: c_header_params
 ) -> *mut Box<VM> {
     sputnikvm_new::<MordenEIP160Patch>(transaction, header)
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_new_custom_frontier(
+    transaction: c_transaction, header: c_header_params
+) -> *mut Box<VM> {
+    sputnikvm_new::<CustomFrontierPatch>(transaction, header)
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_new_custom_homestead(
+    transaction: c_transaction, header: c_header_params
+) -> *mut Box<VM> {
+    sputnikvm_new::<CustomHomesteadPatch>(transaction, header)
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_new_custom_eip150(
+    transaction: c_transaction, header: c_header_params
+) -> *mut Box<VM> {
+    sputnikvm_new::<CustomEIP150Patch>(transaction, header)
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_new_custom_eip160(
+    transaction: c_transaction, header: c_header_params
+) -> *mut Box<VM> {
+    sputnikvm_new::<CustomEIP160Patch>(transaction, header)
 }
 
 #[no_mangle]
