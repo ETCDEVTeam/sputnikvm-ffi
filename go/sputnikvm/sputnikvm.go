@@ -661,3 +661,7 @@ func (vm *VM) AccountChanges() []AccountChange {
 	C.free(cchanges)
 	return changes
 }
+
+func (vm *VM) Failed() bool {
+	return uint(C.sputnikvm_status_failed(vm.c)) == 1
+}
