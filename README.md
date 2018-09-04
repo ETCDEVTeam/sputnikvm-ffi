@@ -20,7 +20,7 @@ interact with it. You can find the generated documentation file for
 Import the `sputnikvm` library to your application:
 
 ```
-import "github.com/ethereumproject/sputnikvm-ffi/go/sputnikvm"
+import "github.com/ETCDEVTeam/sputnikvm-ffi/go/sputnikvm"
 ```
 
 Build a static library for the C FFI, which will give you an
@@ -39,5 +39,5 @@ CGO_LDFLAGS="/path/to/libsputnikvm.a -ldl" go build .
 ```
 
 Refer to
-[GoDoc](https://godoc.org/github.com/ethereumproject/sputnikvm-ffi/go/sputnikvm)
+[GoDoc](https://godoc.org/github.com/ETCDEVTeam/sputnikvm-ffi/go/sputnikvm)
 for documentation of the Go bindings.
