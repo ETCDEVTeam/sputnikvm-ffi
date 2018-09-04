@@ -11,7 +11,7 @@ In `c` folder, run `make build`. It will generate an object file
 `libsputnikvm.so`, and you can use the header file `sputnikvm.h` to
 interact with it. You can find the generated documentation file for
 `sputnikvm.h`
-[here](https://ethereumproject.github.io/sputnikvm-ffi/sputnikvm_8h.html).
+[here](https://ETCDEVTeam.github.io/sputnikvm-ffi/sputnikvm_8h.html).
 
 ### Go
 
