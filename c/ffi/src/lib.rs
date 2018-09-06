@@ -779,3 +779,16 @@ pub extern "C" fn sputnikvm_status_failed(vm: *mut Box<VM>) -> c_uchar {
     Box::into_raw(vm_box);
     ret
 }
+
+
+#[no_mangle]
+pub unsafe extern "C" fn sputnikvm_out_len(vm: *mut Box<VM>) -> c_uint {
+    let mut vm_box =  Box::from_raw(vm);
+    let ret;
+    {
+    let vm: &mut VM = vm_box.deref_mut().deref_mut();
+    ret=vm.out().len() as c_uint;
+    }
+    Box::into_raw(vm_box);
+    ret
+}

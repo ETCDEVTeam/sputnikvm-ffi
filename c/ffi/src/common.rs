@@ -138,4 +138,12 @@ impl From<H256> for c_h256 {
         a
     }
 }
-
+/*
+impl Default for c_u8 {
+    fn default() -> c_u8 {
+        c_u8 {
+            data: [0; 8]
+        }
+    }
+}
+*/
