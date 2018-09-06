@@ -2,3 +2,5 @@ main
 lib/libsputnikvm_go.so
 .vscode/
 vendor/
+go/go
+temp/
