@@ -33,9 +33,10 @@ package sputnikvm
 import "C"
 
 import (
-	"github.com/ethereumproject/go-ethereum/common"
 	"math/big"
 	"unsafe"
+
+	"github.com/ethereumproject/go-ethereum/common"
 )
 
 type AccountChangeType int
@@ -666,4 +667,8 @@ func (vm *VM) AccountChanges() []AccountChange {
 
 func (vm *VM) Failed() bool {
 	return uint(C.sputnikvm_status_failed(vm.c)) == 1
+}
+
+func (vm *VM) OutLen() uint {
+	return uint(C.sputnikvm_out_len(vm.c))
 }

@@ -341,3 +341,7 @@ sputnikvm_default_header_params(void);
  */
 extern char
 sputnikvm_status_failed(sputnikvm_vm_t *vm);
+
+extern unsigned int
+sputnikvm_out_len(sputnikvm_vm_t *vm);
+
