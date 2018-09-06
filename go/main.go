@@ -158,6 +158,8 @@ Loop:
 
 	}
 	println("VM Output: ", vm.OutLen())
+	println("VM Output: ", vm.Out(0))
+
 	println("VM Successfuly : ", !vm.Failed())
 	vm.Free()
 

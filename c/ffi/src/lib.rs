@@ -792,3 +792,16 @@ pub unsafe extern "C" fn sputnikvm_out_len(vm: *mut Box<VM>) -> c_uint {
     Box::into_raw(vm_box);
     ret
 }
+
+#[no_mangle]
+pub unsafe extern "C" fn sputnikvm_out_getchar(vm: *mut Box<VM>,index: c_uint) -> c_uchar {
+    let mut vm_box =  Box::from_raw(vm);
+    let ret;
+    {
+    let vm: &mut VM = vm_box.deref_mut().deref_mut();
+    //let mut w = slice::from_raw_parts_mut(vm.out(), index as u8);
+    ret=vm.out()[index as usize];
+    }
+    Box::into_raw(vm_box);
+    ret
+}

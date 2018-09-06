@@ -672,3 +672,7 @@ func (vm *VM) Failed() bool {
 func (vm *VM) OutLen() uint {
 	return uint(C.sputnikvm_out_len(vm.c))
 }
+
+func (vm *VM) Out(index uint) uint8 {
+	return uint8(C.sputnikvm_out_getchar(vm.c, C.uint(index)))
+}
