@@ -805,3 +805,48 @@ pub unsafe extern "C" fn sputnikvm_out_getchar(vm: *mut Box<VM>,index: c_uint) -
     Box::into_raw(vm_box);
     ret
 }
+
+/*
+#[no_mangle]
+pub unsafe extern "C" fn sputnikvm_out_copy_data(vm: *mut Box<VM>,w: *mut c_uchar) {
+    let mut vm_box =  Box::from_raw(vm);
+    {
+    let vm: &mut VM = vm_box.deref_mut().deref_mut();
+    let l=vm.out().len() as usize;
+    let mut w = slice::from_raw_parts_mut(w, l);
+    if l>0 {
+        let outputs = vm.out();
+        let n=0;
+        for i in outputs{
+            w[n]=*i as c_uchar;
+            let n=n+1;
+        } 
+
+    }else{
+        //let w=nil;
+    }
+    
+    
+    //let mut w = slice::from_raw_parts_mut(vm.out(), index as u8);
+    }
+    Box::into_raw(vm_box);
+}
+*/
+
+#[no_mangle]
+pub unsafe extern "C" fn sputnikvm_out_copy_data(vm: *mut Box<VM>,w: *mut c_uchar) {
+    let mut vm_box =  Box::from_raw(vm);
+    {
+    let vm: &mut VM = vm_box.deref_mut().deref_mut();
+    let l=vm.out().len() as usize;
+    let mut w = slice::from_raw_parts_mut(w, l);
+    if l>0 {
+        let outputs = vm.out();
+        let n=0;
+        for i in 0..l {
+            w[i] = outputs[i];
+        }
+    }
+    }
+    Box::into_raw(vm_box);
+}

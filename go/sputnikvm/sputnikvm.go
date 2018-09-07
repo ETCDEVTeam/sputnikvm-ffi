@@ -676,3 +676,16 @@ func (vm *VM) OutLen() uint {
 func (vm *VM) Out(index uint) uint8 {
 	return uint8(C.sputnikvm_out_getchar(vm.c, C.uint(index)))
 }
+
+func (vm *VM) Output() []uint8 {
+	l := uint(C.sputnikvm_out_len(vm.c))
+	cout := C.malloc(C.size_t(l))
+	C.sputnikvm_out_copy_data(vm.c, (*C.uchar)(cout))
+	out := make([]uint8, int(l))
+
+	for j := 0; j < int(l); j++ {
+		j_cout := unsafe.Pointer(uintptr(cout) + uintptr(j))
+		out[j] = uint8(*(*C.uchar)(j_cout))
+	}
+	return out
+}

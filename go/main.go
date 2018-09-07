@@ -158,7 +158,12 @@ Loop:
 
 	}
 	println("VM Output: ", vm.OutLen())
-	println("VM Output: ", vm.Out(0))
+	var i uint
+	for i = 0; i < 32; i++ {
+		println("VM Output: ", vm.Out(i))
+	}
+
+	fmt.Printf("\nVM Output Array: %v\n", vm.Output())
 
 	println("VM Successfuly : ", !vm.Failed())
 	vm.Free()

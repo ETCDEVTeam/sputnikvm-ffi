@@ -353,3 +353,6 @@ sputnikvm_out_len(sputnikvm_vm_t *vm);
  */
 extern unsigned char
 sputnikvm_out_getchar(sputnikvm_vm_t *vm,unsigned int index);
+
+extern void
+sputnikvm_out_copy_data(sputnikvm_vm_t *vm,unsigned char *w);

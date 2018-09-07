@@ -27,4 +27,4 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/ethereumproject/sputnikvm-ffi"
+  name = "github.com/GheisMohammadi/sputnikvm-ffi"

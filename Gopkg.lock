@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/GheisMohammadi/sputnikvm-ffi"
   packages = ["go/sputnikvm"]
-  revision = "092a1adc036b5400d2aef902a999824d664c06a0"
+  revision = "566c85391f30bb0dc91106de7eef7d7ec422a407"
 
 [[projects]]
   name = "github.com/denisbrodbeck/machineid"
@@ -23,11 +23,11 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["windows","windows/registry"]
-  revision = "fa5fdf94c78965f1aa8423f0cc50b8b8d728b05a"
+  revision = "ebe1bf3edb3325c393447059974de898d5133eb8"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "bb242ea97a869f83ad2fe0dca68a97f0fc31dc03d3572990844d3890e5b54b8c"
+  inputs-digest = "c230e21c75a977ef2afb00cf023f100d749e35a66b85d91b0d2ec4f760548b6e"
   solver-name = "gps-cdcl"
   solver-version = 1
