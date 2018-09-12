@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/GheisMohammadi/sputnikvm-ffi"
   packages = ["go/sputnikvm"]
-  revision = "566c85391f30bb0dc91106de7eef7d7ec422a407"
+  revision = "61570243685287bf398d8bcc6f72045f9f4b14d6"
 
 [[projects]]
   name = "github.com/denisbrodbeck/machineid"
@@ -23,7 +23,7 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["windows","windows/registry"]
-  revision = "ebe1bf3edb3325c393447059974de898d5133eb8"
+  revision = "8cf3aee429924738c56c34bb819c4ea8273fc434"
 
 [solve-meta]
   analyzer-name = "dep"

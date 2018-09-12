@@ -841,8 +841,7 @@ pub unsafe extern "C" fn sputnikvm_out_copy_data(vm: *mut Box<VM>,w: *mut c_ucha
     let l=vm.out().len() as usize;
     let mut w = slice::from_raw_parts_mut(w, l);
     if l>0 {
-        let outputs = vm.out();
-        let n=0;
+        let outputs = vm.out();        
         for i in 0..l {
             w[i] = outputs[i];
         }
