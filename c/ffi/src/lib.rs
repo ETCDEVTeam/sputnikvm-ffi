@@ -1,6 +1,8 @@
 extern crate libc;
 extern crate bigint;
 extern crate sputnikvm;
+extern crate sputnikvm_network_classic as network;
+extern crate env_logger;
 
 mod common;
 
@@ -14,9 +16,10 @@ use std::collections::HashMap;
 use libc::{c_uchar, c_uint, c_longlong};
 use bigint::{U256, M256};
 use sputnikvm::{TransactionAction, ValidTransaction, HeaderParams, SeqTransactionVM, Patch,
-                MainnetFrontierPatch, MainnetHomesteadPatch, MainnetEIP150Patch, MainnetEIP160Patch,
-                VM, VMStatus, RequireError, AccountCommitment, AccountChange,
-                FrontierPatch, HomesteadPatch, EIP150Patch, EIP160Patch, AccountPatch};
+                VM, VMStatus, RequireError, AccountCommitment, AccountChange, AccountPatch};
+
+use network::{MainnetFrontierPatch, MainnetHomesteadPatch, MainnetEIP150Patch, MainnetEIP160Patch,
+              FrontierPatch, HomesteadPatch, EIP150Patch, EIP160Patch};
 
 type c_action = c_uchar;
 #[no_mangle]
@@ -27,6 +30,8 @@ pub static CREATE_ACTION: c_action = 1;
 pub struct MordenAccountPatch;
 impl AccountPatch for MordenAccountPatch {
     fn initial_nonce() -> U256 { U256::from(1048576) }
+    fn initial_create_nonce() -> U256 { Self::initial_nonce() }
+    fn empty_considered_exists() -> bool { true }
 }
 
 pub type MordenFrontierPatch = FrontierPatch<MordenAccountPatch>;
@@ -38,7 +43,9 @@ static mut CUSTOM_INITIAL_NONCE: Option<U256> = None;
 
 pub struct CustomAccountPatch;
 impl AccountPatch for CustomAccountPatch {
-    fn initial_nonce() -> U256 { U256::from(unsafe { CUSTOM_INITIAL_NONCE.unwrap() }) }
+    fn initial_nonce() -> U256 { U256::from(1048576) }
+    fn initial_create_nonce() -> U256 { Self::initial_nonce() }
+    fn empty_considered_exists() -> bool { true }
 }
 
 pub type CustomFrontierPatch = FrontierPatch<CustomAccountPatch>;
@@ -166,6 +173,7 @@ pub unsafe extern "C" fn sputnikvm_set_custom_initial_nonce(v: c_u256) {
 fn sputnikvm_new<P: Patch + 'static>(
     transaction: c_transaction, header: c_header_params
 ) -> *mut Box<VM> {
+    env_logger::try_init();
     let transaction = ValidTransaction {
         caller: Some(transaction.caller.into()),
         gas_price: transaction.gas_price.into(),
@@ -608,18 +616,7 @@ pub extern "C" fn sputnikvm_account_changes_copy_info(
                                 },
                             }
                         }
-                    },
-                    &AccountChange::DecreaseBalance(address, amount) => {
-                        c_account_change {
-                            typ: c_account_change_type::decrease_balance,
-                            value: c_account_change_value {
-                                balance: c_account_change_value_balance {
-                                    address: address.into(),
-                                    amount: amount.into(),
-                                },
-                            }
-                        }
-                    },
+                    }
                 }
             }
         }
