@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"math/big"
-	"github.com/ethereumproject/go-ethereum/common"
+
 	"github.com/ETCDEVTeam/sputnikvm-ffi/go/sputnikvm"
+	"github.com/ethereumproject/go-ethereum/common"
 )
 
 func main() {
@@ -13,22 +14,22 @@ func main() {
 	fmt.Printf("%v\n", cint)
 	sputnikvm.PrintCU256(cint)
 
-	transaction := sputnikvm.Transaction {
-		Caller: *new(common.Address),
+	transaction := sputnikvm.Transaction{
+		Caller:   *new(common.Address),
 		GasPrice: new(big.Int),
 		GasLimit: new(big.Int).SetUint64(1000000000),
-		Address: new(common.Address),
-		Value: new(big.Int),
-		Input: []byte{1, 2, 3, 4, 5},
-		Nonce: new(big.Int),
+		Address:  new(common.Address),
+		Value:    new(big.Int),
+		Input:    []byte{1, 2, 3, 4, 5},
+		Nonce:    new(big.Int),
 	}
 
-	header := sputnikvm.HeaderParams {
+	header := sputnikvm.HeaderParams{
 		Beneficiary: *new(common.Address),
-		Timestamp: 0,
-		Number: new(big.Int),
-		Difficulty: new(big.Int),
-		GasLimit: new(big.Int),
+		Timestamp:   0,
+		Number:      new(big.Int),
+		Difficulty:  new(big.Int),
+		GasLimit:    new(big.Int),
 	}
 
 	vm := sputnikvm.NewFrontier(&transaction, &header)
@@ -53,5 +54,6 @@ Loop:
 	fmt.Printf("%v\n", vm.UsedGas())
 	fmt.Printf("%v\n", vm.Logs())
 	fmt.Printf("%v\n", vm.AccountChanges())
+	//fmt.Printf("%s\n", hex.EncodeToString(vm.Output()))
 	vm.Free()
 }
