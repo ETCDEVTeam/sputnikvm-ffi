@@ -2,6 +2,8 @@ extern crate libc;
 extern crate bigint;
 extern crate sputnikvm;
 extern crate sputnikvm_network_classic as network;
+
+#[cfg(feature = "log")]
 extern crate env_logger;
 
 mod common;
@@ -170,10 +172,21 @@ pub unsafe extern "C" fn sputnikvm_set_custom_initial_nonce(v: c_u256) {
     }
 }
 
+#[allow(unused_must_use)]
+fn init_logging() {
+    // WARN: result is left unhandled on purpose.
+    //       the function will return Ok only on first run
+    //       while the second creation of SputnikVM instance
+    //       would panic if we unwrap the result
+    if cfg!(feature = "log") {
+        env_logger::try_init();
+    }
+}
+
 fn sputnikvm_new<P: Patch + 'static>(
     transaction: c_transaction, header: c_header_params
 ) -> *mut Box<VM> {
-    env_logger::try_init();
+    init_logging();
     let transaction = ValidTransaction {
         caller: Some(transaction.caller.into()),
         gas_price: transaction.gas_price.into(),
