@@ -33,9 +33,10 @@ package sputnikvm
 import "C"
 
 import (
-	"github.com/ethereumproject/go-ethereum/common"
 	"math/big"
 	"unsafe"
+
+	"github.com/ethereumproject/go-ethereum/common"
 )
 
 type AccountChangeType int
@@ -666,4 +667,21 @@ func (vm *VM) AccountChanges() []AccountChange {
 
 func (vm *VM) Failed() bool {
 	return uint(C.sputnikvm_status_failed(vm.c)) == 1
+}
+
+func (vm *VM) OutLen() uint {
+	return uint(C.sputnikvm_out_len(vm.c))
+}
+
+func (vm *VM) Output() []uint8 {
+	l := uint(C.sputnikvm_out_len(vm.c))
+	cout := C.malloc(C.size_t(l))
+	C.sputnikvm_out_copy_data(vm.c, (*C.uchar)(cout))
+	out := make([]uint8, int(l))
+
+	for j := 0; j < int(l); j++ {
+		j_cout := unsafe.Pointer(uintptr(cout) + uintptr(j))
+		out[j] = uint8(*(*C.uchar)(j_cout))
+	}
+	return out
 }
