@@ -1,6 +1,11 @@
 extern crate libc;
 extern crate bigint;
+extern crate clap;
 extern crate sputnikvm;
+extern crate sputnikvm_network_classic;
+extern crate hexutil;
+extern crate block;
+
 
 mod common;
 
@@ -12,11 +17,17 @@ use std::rc::Rc;
 use std::ops::DerefMut;
 use std::collections::HashMap;
 use libc::{c_uchar, c_uint, c_longlong};
-use bigint::{U256, M256};
-use sputnikvm::{TransactionAction, ValidTransaction, HeaderParams, SeqTransactionVM, Patch,
-                MainnetFrontierPatch, MainnetHomesteadPatch, MainnetEIP150Patch, MainnetEIP160Patch,
-                VM, VMStatus, RequireError, AccountCommitment, AccountChange,
-                FrontierPatch, HomesteadPatch, EIP150Patch, EIP160Patch, AccountPatch};
+use bigint::{Gas, Address, U256, M256, H256};
+use block::TransactionAction;
+
+use sputnikvm::{HeaderParams, Context, SeqTransactionVM, ValidTransaction, VM, Log, Patch,
+                AccountCommitment, AccountChange, VMStatus};
+use sputnikvm_network_classic::{MainnetFrontierPatch, MainnetHomesteadPatch,
+                                MainnetEIP150Patch, MainnetEIP160Patch};
+use sputnikvm::errors::RequireError;
+use sputnikvm::AccountPatch;
+use sputnikvm_network_classic::{FrontierPatch, HomesteadPatch, EIP150Patch, EIP160Patch};
+
 
 type c_action = c_uchar;
 #[no_mangle]
@@ -27,6 +38,8 @@ pub static CREATE_ACTION: c_action = 1;
 pub struct MordenAccountPatch;
 impl AccountPatch for MordenAccountPatch {
     fn initial_nonce() -> U256 { U256::from(1048576) }
+    fn initial_create_nonce() -> U256 { Self::initial_nonce() }
+    fn empty_considered_exists() -> bool { true }
 }
 
 pub type MordenFrontierPatch = FrontierPatch<MordenAccountPatch>;
@@ -39,6 +52,8 @@ static mut CUSTOM_INITIAL_NONCE: Option<U256> = None;
 pub struct CustomAccountPatch;
 impl AccountPatch for CustomAccountPatch {
     fn initial_nonce() -> U256 { U256::from(unsafe { CUSTOM_INITIAL_NONCE.unwrap() }) }
+    fn initial_create_nonce() -> U256 { Self::initial_nonce() }
+    fn empty_considered_exists() -> bool { true }
 }
 
 pub type CustomFrontierPatch = FrontierPatch<CustomAccountPatch>;
@@ -601,17 +616,6 @@ pub extern "C" fn sputnikvm_account_changes_copy_info(
                     &AccountChange::IncreaseBalance(address, amount) => {
                         c_account_change {
                             typ: c_account_change_type::increase_balance,
-                            value: c_account_change_value {
-                                balance: c_account_change_value_balance {
-                                    address: address.into(),
-                                    amount: amount.into(),
-                                },
-                            }
-                        }
-                    },
-                    &AccountChange::DecreaseBalance(address, amount) => {
-                        c_account_change {
-                            typ: c_account_change_type::decrease_balance,
                             value: c_account_change_value {
                                 balance: c_account_change_value_balance {
                                     address: address.into(),
