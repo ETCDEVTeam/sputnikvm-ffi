@@ -1,5 +1,5 @@
 build:
-	cd ffi && cargo build --release
+	cd ffi && cargo build --release --no-default-features --features "rust-secp256k1 std rlp"
 	cp ffi/target/release/libsputnikvm_ffi.a libsputnikvm.a
 	cp ffi/target/release/libsputnikvm_ffi.so libsputnikvm.so | true
 
