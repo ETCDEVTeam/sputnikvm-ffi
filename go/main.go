@@ -9,6 +9,18 @@ import (
 )
 
 func main() {
+
+	//Run Original Sample of SputnikVM-ffi
+	fmt.Println("\n/////////////////////////////////////////////////////////\n[ riginal Sample ]\n/////////////////////////////////////////////////////////")
+	runOriginalSample()
+
+	//Use Sputnik as Stateless Virtual Machine
+	fmt.Println("\n/////////////////////////////////////////////////////////\n[ Sateless Sample ]\n/////////////////////////////////////////////////////////")
+	runStatelessSample()
+
+}
+
+func runOriginalSample() {
 	goint := big.NewInt(100000000000000)
 	cint := sputnikvm.ToCU256(goint)
 	fmt.Printf("%v\n", cint)
