@@ -9,4 +9,8 @@ crate-type = ["staticlib", "cdylib"]
 [dependencies]
 libc = "0.2"
 etcommon-bigint = { version = "0.2", default-features = false, features = ["rlp"] }
-sputnikvm = { version = "0.9", default-features = false, features = ["std", "rust-secp256k1"] }
+sputnikvm = { version = "0.10" }
+sputnikvm-network-classic = "0.10.0"
+etcommon-block = "0.3"
+etcommon-hexutil = "0.2"
+clap = "2.22"
