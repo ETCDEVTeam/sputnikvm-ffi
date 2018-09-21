@@ -4,16 +4,18 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/GheisMohammadi/sputnikvm-ffi/go/sputnikvm"
+	"github.com/ETCDEVTeam/sputnikvm-ffi/go/sputnikvm"
 	"github.com/ethereumproject/go-ethereum/common"
 )
 
 func main() {
 
 	//Run Original Sample of SputnikVM-ffi
+	fmt.Println("\n/////////////////////////////////////////////////////////\n[ riginal Sample ]\n/////////////////////////////////////////////////////////")
 	runOriginalSample()
 
 	//Use Sputnik as Stateless Virtual Machine
+	fmt.Println("\n/////////////////////////////////////////////////////////\n[ Sateless Sample ]\n/////////////////////////////////////////////////////////")
 	runStatelessSample()
 
 }
