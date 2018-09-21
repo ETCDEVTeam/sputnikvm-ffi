@@ -63,8 +63,9 @@ Loop:
 			panic("unreachable")
 		}
 	}
-	fmt.Printf("%v\n", vm.UsedGas())
-	fmt.Printf("%v\n", vm.Logs())
-	fmt.Printf("%v\n", vm.AccountChanges())
+	fmt.Printf("Used Gas: %v\n", vm.UsedGas())
+	fmt.Printf("Logs: %v\n", vm.Logs())
+	fmt.Printf("Account Changes: %v\n", vm.AccountChanges())
+	fmt.Printf("Output: %v\n", vm.Output())
 	vm.Free()
 }
