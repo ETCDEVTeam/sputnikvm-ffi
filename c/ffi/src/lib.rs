@@ -17,10 +17,10 @@ use std::rc::Rc;
 use std::ops::DerefMut;
 use std::collections::HashMap;
 use libc::{c_uchar, c_uint, c_longlong};
-use bigint::{Gas, Address, U256, M256, H256};
+use bigint::{U256, M256};
 use block::TransactionAction;
 
-use sputnikvm::{HeaderParams, Context, SeqTransactionVM, ValidTransaction, VM, Log, Patch,
+use sputnikvm::{HeaderParams, SeqTransactionVM, ValidTransaction, VM, Patch,
                 AccountCommitment, AccountChange, VMStatus};
 use sputnikvm_network_classic::{MainnetFrontierPatch, MainnetHomesteadPatch,
                                 MainnetEIP150Patch, MainnetEIP160Patch};
@@ -29,11 +29,11 @@ use sputnikvm::AccountPatch;
 use sputnikvm_network_classic::{FrontierPatch, HomesteadPatch, EIP150Patch, EIP160Patch};
 
 
-type c_action = c_uchar;
+type CAction = c_uchar;
 #[no_mangle]
-pub static CALL_ACTION: c_action = 0;
+pub static CALL_ACTION: CAction = 0;
 #[no_mangle]
-pub static CREATE_ACTION: c_action = 1;
+pub static CREATE_ACTION: CAction = 1;
 
 pub struct MordenAccountPatch;
 impl AccountPatch for MordenAccountPatch {
@@ -66,7 +66,7 @@ pub struct c_transaction {
     pub caller: c_address,
     pub gas_price: c_gas,
     pub gas_limit: c_gas,
-    pub action: c_action,
+    pub action: CAction,
     pub action_address: c_address,
     pub value: c_u256,
     pub input: *const c_uchar,
@@ -91,23 +91,23 @@ pub struct c_require {
 
 #[repr(C)]
 pub enum c_require_type {
-    none,
-    account,
-    account_code,
-    account_storage,
-    blockhash
+    None,
+    Account,
+    AccountCode,
+    AccountStorage,
+    Blockhash
 }
 
 #[repr(C)]
 pub union c_require_value {
     pub account: c_address,
-    pub account_storage: c_require_value_account_storage,
+    pub account_storage: c_require_value_AccountStorage,
     pub blockhash: c_u256,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct c_require_value_account_storage {
+pub struct c_require_value_AccountStorage {
     pub address: c_address,
     pub key: c_u256,
 }
@@ -127,11 +127,11 @@ pub struct c_account_change {
 
 #[repr(C)]
 pub enum c_account_change_type {
-    increase_balance,
-    decrease_balance,
-    full,
-    create,
-    removed,
+    IncreaseBalance,
+    DecreaseBalance,
+    Full,
+    Create,
+    Removed,
 }
 
 #[repr(C)]
@@ -173,9 +173,7 @@ pub extern "C" fn print_u256(v: c_u256) {
 #[no_mangle]
 pub unsafe extern "C" fn sputnikvm_set_custom_initial_nonce(v: c_u256) {
     let v: U256 = v.into();
-    unsafe {
-        CUSTOM_INITIAL_NONCE = Some(v)
-    }
+    CUSTOM_INITIAL_NONCE = Some(v)
 }
 
 fn sputnikvm_new<P: Patch + 'static>(
@@ -325,7 +323,7 @@ pub extern "C" fn sputnikvm_fire(
         match vm.fire() {
             Ok(()) => {
                 ret = c_require {
-                    typ: c_require_type::none,
+                    typ: c_require_type::None,
                     value: c_require_value {
                         account: c_address::default(),
                     }
@@ -333,7 +331,7 @@ pub extern "C" fn sputnikvm_fire(
             },
             Err(RequireError::Account(address)) => {
                 ret = c_require {
-                    typ: c_require_type::account,
+                    typ: c_require_type::Account,
                     value: c_require_value {
                         account: address.into(),
                     }
@@ -341,7 +339,7 @@ pub extern "C" fn sputnikvm_fire(
             },
             Err(RequireError::AccountCode(address)) => {
                 ret = c_require {
-                    typ: c_require_type::account_code,
+                    typ: c_require_type::AccountCode,
                     value: c_require_value {
                         account: address.into(),
                     }
@@ -349,9 +347,9 @@ pub extern "C" fn sputnikvm_fire(
             },
             Err(RequireError::AccountStorage(address, key)) => {
                 ret = c_require {
-                    typ: c_require_type::account_storage,
+                    typ: c_require_type::AccountStorage,
                     value: c_require_value {
-                        account_storage: c_require_value_account_storage {
+                        account_storage: c_require_value_AccountStorage {
                             address: address.into(),
                             key: key.into(),
                         },
@@ -360,7 +358,7 @@ pub extern "C" fn sputnikvm_fire(
             },
             Err(RequireError::Blockhash(number)) => {
                 ret = c_require {
-                    typ: c_require_type::blockhash,
+                    typ: c_require_type::Blockhash,
                     value: c_require_value {
                         blockhash: number.into(),
                     },
@@ -505,7 +503,7 @@ pub extern "C" fn sputnikvm_logs_copy_info(
     {
         let vm: &mut VM = vm_box.deref_mut().deref_mut();
         let logs = vm.logs();
-        let mut logs_write = unsafe { slice::from_raw_parts_mut(log, log_len as usize) };
+        let logs_write = unsafe { slice::from_raw_parts_mut(log, log_len as usize) };
         for i in 0..logs_write.len() {
             if i < logs.len() {
                 logs_write[i] = c_log {
@@ -541,7 +539,7 @@ pub extern "C" fn sputnikvm_logs_copy_data(
     {
         let vm: &mut VM = vm_box.deref_mut().deref_mut();
         let logs = vm.logs();
-        let mut data_w = unsafe { slice::from_raw_parts_mut(data_w, data_w_len as usize) };
+        let data_w = unsafe { slice::from_raw_parts_mut(data_w, data_w_len as usize) };
         for i in 0..data_w.len() {
             if i < logs[log_index as usize].data.len() {
                 data_w[i] = logs[log_index as usize].data[i];
@@ -573,13 +571,13 @@ pub extern "C" fn sputnikvm_account_changes_copy_info(
     {
         let vm: &mut VM = vm_box.deref_mut().deref_mut();
         let accounts = vm.accounts();
-        let mut w = unsafe { slice::from_raw_parts_mut(w, wl as usize) };
+        let w = unsafe { slice::from_raw_parts_mut(w, wl as usize) };
         for (i, account) in accounts.enumerate() {
             if i < w.len() {
                 w[i] = match account {
                     &AccountChange::Full { nonce, address, balance, ref changing_storage, ref code } => {
                         c_account_change {
-                            typ: c_account_change_type::full,
+                            typ: c_account_change_type::Full,
                             value: c_account_change_value {
                                 all: c_account_change_value_all {
                                     address: address.into(),
@@ -593,7 +591,7 @@ pub extern "C" fn sputnikvm_account_changes_copy_info(
                     },
                     &AccountChange::Create { nonce, address, balance, ref storage, ref code } => {
                         c_account_change {
-                            typ: c_account_change_type::create,
+                            typ: c_account_change_type::Create,
                             value: c_account_change_value {
                                 all: c_account_change_value_all {
                                     address: address.into(),
@@ -607,7 +605,7 @@ pub extern "C" fn sputnikvm_account_changes_copy_info(
                     },
                     &AccountChange::Nonexist(address) => {
                         c_account_change {
-                            typ: c_account_change_type::removed,
+                            typ: c_account_change_type::Removed,
                             value: c_account_change_value {
                                 removed: address.into(),
                             },
@@ -615,7 +613,7 @@ pub extern "C" fn sputnikvm_account_changes_copy_info(
                     },
                     &AccountChange::IncreaseBalance(address, amount) => {
                         c_account_change {
-                            typ: c_account_change_type::increase_balance,
+                            typ: c_account_change_type::IncreaseBalance,
                             value: c_account_change_value {
                                 balance: c_account_change_value_balance {
                                     address: address.into(),
@@ -640,7 +638,7 @@ pub extern "C" fn sputnikvm_account_changes_copy_storage(
     {
         let vm: &mut VM = vm_box.deref_mut().deref_mut();
         let accounts = vm.accounts();
-        let mut w = unsafe { slice::from_raw_parts_mut(w, wl as usize) };
+        let w = unsafe { slice::from_raw_parts_mut(w, wl as usize) };
         let target_address = address.into();
         for account in accounts {
             match account {
@@ -697,7 +695,7 @@ pub extern "C" fn sputnikvm_account_changes_copy_code(
     {
         let vm: &mut VM = vm_box.deref_mut().deref_mut();
         let accounts = vm.accounts();
-        let mut w = unsafe { slice::from_raw_parts_mut(w, wl as usize) };
+        let w = unsafe { slice::from_raw_parts_mut(w, wl as usize) };
         let target_address = address.into();
         for account in accounts {
             match account {
@@ -777,7 +775,7 @@ pub extern "C" fn sputnikvm_status_failed(vm: *mut Box<VM>) -> c_uchar {
         let vm: &mut VM = vm_box.deref_mut().deref_mut();
         match vm.status() {
             VMStatus::ExitedErr(_) => ret = 1,
-            default => ret = 0,
+            _default => ret = 0,
         }
     }
     Box::into_raw(vm_box);
@@ -802,9 +800,9 @@ pub unsafe extern "C" fn sputnikvm_out_copy_data(vm: *mut Box<VM>,w: *mut c_ucha
     {
     let vm: &mut VM = vm_box.deref_mut().deref_mut();
     let l=vm.out().len() as usize;
-    let mut w = slice::from_raw_parts_mut(w, l);
+    let w = slice::from_raw_parts_mut(w, l);
     if l>0 {
-        let outputs = vm.out();        
+        let outputs = vm.out();
         for i in 0..l {
             w[i] = outputs[i];
         }
