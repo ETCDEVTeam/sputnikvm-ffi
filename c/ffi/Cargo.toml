@@ -1,7 +1,7 @@
 [package]
 name = "sputnikvm-ffi"
-version = "0.0.0"
-authors = ["Wei Tang <hi@that.world>"]
+version = "0.11.0-beta.0"
+authors = ["Wei Tang <hi@that.world>", "Mike Lubinets <lubinetsm@yandex.ru>"]
 
 [lib]
 crate-type = ["staticlib", "cdylib"]
@@ -9,8 +9,8 @@ crate-type = ["staticlib", "cdylib"]
 [dependencies]
 libc = "0.2"
 etcommon-bigint = { version = "0.2", default-features = false }
-sputnikvm = { path = "/home/mike/dev/etcdev/sputnikvm", default-features = false }
-sputnikvm-network-classic = { path = "/home/mike/dev/etcdev/sputnikvm/network/classic", default-features = false }
+sputnikvm = { version = "0.11.0-beta" , default-features = false }
+sputnikvm-network-classic = { version = "0.11.0-beta", default-features = false }
 env_logger = { version = "0.5.13", optional = true }
 
 [features]
@@ -20,26 +20,3 @@ c-secp256k1 = ["sputnikvm/c-secp256k1", "sputnikvm-network-classic/c-secp256k1"]
 rust-secp256k1 = ["sputnikvm/rust-secp256k1", "sputnikvm-network-classic/rust-secp256k1"]
 std = ["sputnikvm/std", "sputnikvm-network-classic/std"]
 log = ["env_logger"]
-
-[profile.release]
-opt-level = 2      # controls the `--opt-level` the compiler builds with.
-                   # 0-1 is good for debugging. 2 is well-optimized. Max is 3.
-                   # 's' attempts to reduce size, 'z' reduces size even more.
-debug = true       # (u32 or bool) Include debug information (debug symbols).
-                   # Equivalent to `-C debuginfo=2` compiler flag.
-rpath = false      # controls whether compiler should set loader paths.
-                   # If true, passes `-C rpath` flag to the compiler.
-lto = false        # Link Time Optimization usually reduces size of binaries
-                   # and static libraries. Increases compilation time.
-                   # If true, passes `-C lto` flag to the compiler, and if a
-                   # string is specified like 'thin' then `-C lto=thin` will
-                   # be passed.
-debug-assertions = true # controls whether debug assertions are enabled
-                   # (e.g. debug_assert!() and arithmetic overflow checks)
-codegen-units = 16 # if > 1 enables parallel code generation which improves
-                   # compile times, but prevents some optimizations.
-                   # Passes `-C codegen-units`.
-panic = 'unwind'   # panic strategy (`-C panic=...`), can also be 'abort'
-incremental = true # whether or not incremental compilation is enabled
-overflow-checks = true # use overflow checks for integer arithmetic.
-                   # Passes the `-C overflow-checks=...` flag to the compiler.
