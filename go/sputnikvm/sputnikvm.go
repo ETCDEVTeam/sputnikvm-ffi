@@ -513,6 +513,19 @@ func NewCustomEIP160(transaction *Transaction, header *HeaderParams) *VM {
 	return vm
 }
 
+func NewGallactic(transaction *Transaction, header *HeaderParams) *VM {
+	ctransaction, cinput := toCTransaction(transaction)
+	cheader := ToCHeaderParams(header)
+
+	cvm := C.sputnikvm_new_gallactic(*ctransaction, *cheader)
+	C.free(cinput)
+
+	vm := new(VM)
+	vm.c = cvm
+
+	return vm
+}
+
 func SetCustomInitialNonce(nonce *big.Int) {
 	cnonce := ToCU256(nonce)
 	C.sputnikvm_set_custom_initial_nonce(cnonce)

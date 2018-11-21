@@ -9,9 +9,10 @@ crate-type = ["staticlib", "cdylib"]
 [dependencies]
 libc = "0.2"
 etcommon-bigint = { version = "0.2", default-features = false }
-sputnikvm = { version = "0.10", default-features = false }
-sputnikvm-network-classic = { version = "0.10.1", default-features = false }
-etcommon-block = "0.3"
+sputnikvm = { git = "https://github.com/gallactic/sputnikvm", default-features = false }
+sputnikvm-network-classic = { git = "https://github.com/gallactic/sputnikvm", default-features = false }
+sputnikvm-network-gallactic = {git = "https://github.com/gallactic/sputnikvm", default-features = false }
+etcommon-block = "0.5"
 etcommon-hexutil = "0.2"
 clap = "2.22"
 

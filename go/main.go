@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ETCDEVTeam/sputnikvm-ffi/go/sputnikvm"
 	"github.com/ethereumproject/go-ethereum/common"
+	"github.com/gallactic/sputnikvm-ffi/go/sputnikvm"
 )
 
 func main() {
@@ -32,7 +32,7 @@ func main() {
 		GasLimit:    new(big.Int),
 	}
 
-	vm := sputnikvm.NewFrontier(&transaction, &header)
+	vm := sputnikvm.NewGallactic(&transaction, &header)
 
 Loop:
 	for {

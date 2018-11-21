@@ -216,6 +216,13 @@ extern sputnikvm_vm_t *
 sputnikvm_new_custom_eip160(sputnikvm_transaction transaction, sputnikvm_header_params header);
 
 /**
+ * Create a new gallactic patch EVM instance using the given
+ * transaction and header parameters.
+ */
+extern sputnikvm_vm_t *
+sputnikvm_new_gallactic(sputnikvm_transaction transaction, sputnikvm_header_params header);
+
+/**
  * Set the initial nonce value for custom patch.
  */
 extern void

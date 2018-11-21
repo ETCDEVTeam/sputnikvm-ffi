@@ -3,6 +3,7 @@ extern crate bigint;
 extern crate clap;
 extern crate sputnikvm;
 extern crate sputnikvm_network_classic;
+extern crate sputnikvm_network_gallactic;
 extern crate hexutil;
 extern crate block;
 
@@ -27,6 +28,7 @@ use sputnikvm_network_classic::{MainnetFrontierPatch, MainnetHomesteadPatch,
 use sputnikvm::errors::RequireError;
 use sputnikvm::AccountPatch;
 use sputnikvm_network_classic::{FrontierPatch, HomesteadPatch, EIP150Patch, EIP160Patch};
+use sputnikvm_network_gallactic::{GallacticFrontierPatch};
 
 
 type CAction = c_uchar;
@@ -302,6 +304,13 @@ pub extern "C" fn sputnikvm_new_custom_eip160(
     transaction: c_transaction, header: c_header_params
 ) -> *mut Box<VM> {
     sputnikvm_new::<CustomEIP160Patch>(transaction, header)
+}
+
+#[no_mangle]
+pub extern "C" fn sputnikvm_new_gallactic(
+    transaction: c_transaction, header: c_header_params
+) -> *mut Box<VM> {
+    sputnikvm_new::<GallacticFrontierPatch>(transaction, header)
 }
 
 #[no_mangle]
